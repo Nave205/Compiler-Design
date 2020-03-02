@@ -18,22 +18,19 @@ public class Scanner {
     
     public static void main(String args[]) {
 		try{
-			StringBuffer sb = new StringBuffer();	//required for null handling instead of concat
 			File file = new File("C:\\Users\\User\\Desktop\\Cocoa Test Files\\test1.txt"); 
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String st; 
 			while ((st = br.readLine()) != null) {
-				sb.append(st); 
-				code = sb + " ";
+				code = st + " ";            //per line
+                                //System.out.println(st);
 				ArrayList < String > tokens = scan(code);
 				for (int x = 0; x < tokens.size(); x++) {
 					System.out.print(tokens.get(x) + " ");
-				}
+                                }
 				System.out.println();
 			} 
 			br.close();
-			
-			code = sb + " ";
 			//necessary for error handling
 		}
 		catch (Exception e) {
@@ -43,8 +40,10 @@ public class Scanner {
 
     public static ArrayList < String > scan(String code) {
         ArrayList < String > token = new ArrayList <> ();
+        c=0;
         while (c < code.length()) {
             lexeme = code.charAt(c);
+            //System.out.println("c = " + c + ": " + lexeme);
             switch (state) {
             case 0: //beggining of all DFA's and Reserve words
                 if (lexeme == '(')
