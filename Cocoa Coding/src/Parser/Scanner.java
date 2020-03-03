@@ -7,18 +7,18 @@ import ReservedHash.ReservedWords;
 public class Scanner {
     public static int state = 0,
     c = 0, tokenStart=0, tokenEnd=0,
-    point = 0;
+    point = 0 ,errorCount = 0;
     public static ReservedWords rwTable = new ReservedWords();
     public static HashMap<String, String> reservedWords = rwTable.predefineReserves();
     public static HashMap<String, String> identifiers = new HashMap<>();
     public static char lexeme;
     public static String code;
-    
+   
     public static String id,stringlit,intlit,floatlit;
     
     public static void main(String args[]) {
 		try{
-			File file = new File("C:\\Users\\Blank\\Desktop\\Cocoa Test Files\\error8.txt"); 
+			File file = new File("C:\\Users\\Blank\\Desktop\\Cocoa Test Files\\test1.txt"); 
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String st; 
 			while ((st = br.readLine()) != null) {
@@ -30,6 +30,7 @@ public class Scanner {
                                 }
 				System.out.println();
 			} 
+                        System.out.print("\n\nError found:" + errorCount + "\n");
 			br.close();
 			//necessary for error handling
 		}
@@ -39,6 +40,7 @@ public class Scanner {
     }
 
     public static ArrayList < String > scan(String code) {
+      
         ArrayList < String > token = new ArrayList <> ();
         c=0;
         while (c < code.length()) {
@@ -178,6 +180,7 @@ public class Scanner {
 				else
 				{
                     token.add("ERR = Lexeme not in language : '" + lexeme + "'");
+                    errorCount += 1;
 				}
                 break;
             case 1:
@@ -1119,6 +1122,7 @@ public class Scanner {
             default:
                 token.add("ErrorCaseNum"); //should not happen once code is complete
                 state = 0;
+                errorCount += 1;
             }
             c++;
         }

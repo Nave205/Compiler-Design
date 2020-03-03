@@ -1,0 +1,11 @@
+MAIN{
+
+    int num = 420;
+    str word = "360";
+    float remainder;
+    
+    remainder = num % str2num(word)
+    OUTPUT(remainder);                  // 60 //
+
+} end
+

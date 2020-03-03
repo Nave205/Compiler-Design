@@ -1,0 +1,14 @@
+MAIN{
+
+    int load;
+OUTPUT("Loading. . .");
+    for(load = 0; load = 100; load++)
+    {
+        if (load != 50){
+            follow;
+        }
+        OUTPUT(Currently at 50 %!);
+    }
+    OUTPUT(Loading complete);
+
+} end

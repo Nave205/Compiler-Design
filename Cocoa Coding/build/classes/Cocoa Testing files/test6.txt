@@ -1,0 +1,7 @@
+MAIN{
+
+    str first = "Hello";
+    str second = "Cocoa";
+
+    OUTPUT(first #+ " " #+ second);        // Hello Cocoa
+}end

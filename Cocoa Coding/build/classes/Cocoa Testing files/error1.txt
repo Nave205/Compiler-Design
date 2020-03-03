@@ -1,0 +1,18 @@
+MAIN {
+    
+    int x = 5;
+    int y = 3;
+    
+    if(x > y)
+    {
+        OUTPUT(x #+ " is greater than " #+ y);
+    }
+    elseif (x < y)
+    {
+OUTPUT(x #+ " is less than " #+ y);
+}
+else 
+{
+OUTPUT(x #+ " is equal to " #+ y);
+}
+end    // missing ending } //

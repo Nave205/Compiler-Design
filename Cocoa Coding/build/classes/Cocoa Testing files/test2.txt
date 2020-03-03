@@ -1,0 +1,11 @@
+MAIN {
+
+    str sample = "Hello Cocoa";
+    int x;
+
+x = INPUT();            // INPUT() will prompt user for value //
+
+OUTPUT(sample);        // will print out Hello Cocoa //
+    OUTPUT(x);            // will print whatever value is inputted in x //
+
+} end

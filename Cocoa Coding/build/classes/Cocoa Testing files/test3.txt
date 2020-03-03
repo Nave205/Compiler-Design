@@ -1,0 +1,8 @@
+MAIN {
+
+    int num = 420;
+    float deci, deci2, deci3;
+    str word = "Word";
+    bool choice = TRUE;
+
+} end

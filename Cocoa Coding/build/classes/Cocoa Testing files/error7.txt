@@ -1,0 +1,9 @@
+MAIN {
+    
+    int word = "6";
+    int num = 5;
+    str num2 = eleven;
+
+    OUTPUT(num + num2);    // incompatible types, int is incorrectly used //
+
+} end
