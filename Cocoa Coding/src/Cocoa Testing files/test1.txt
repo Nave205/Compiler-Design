@@ -1,0 +1,8 @@
+MAIN {
+
+    int num;            // this line shows declaration //
+    num = 100;            // this line shows assignment //
+
+    str word = "A string!";    // declaration and assignment //
+    
+} end

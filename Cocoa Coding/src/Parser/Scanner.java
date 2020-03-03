@@ -18,7 +18,7 @@ public class Scanner {
     
     public static void main(String args[]) {
 		try{
-			File file = new File("C:\\Users\\User\\Desktop\\Cocoa Test Files\\test1.txt"); 
+			File file = new File("C:\\Users\\Blank\\Desktop\\Cocoa Test Files\\error8.txt"); 
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String st; 
 			while ((st = br.readLine()) != null) {
@@ -50,14 +50,28 @@ public class Scanner {
                     token.add("[LPAREN]");
                 else if (lexeme == ')')
                     token.add("[RPAREN]");
+                
                 else if (lexeme == '{')
                     token.add("[LCURLY]");
                 else if (lexeme == '}')
                     token.add("[RCURLY]");
                 else if (lexeme == ';')
                     token.add("[SCLON]");
+                else if (lexeme == ':')
+                    token.add("[COLON]");
                 else if (lexeme == ',')
                     token.add("[COMMA]");
+                else if (lexeme == '%')
+                    token.add("[MODULO]");
+                else if (lexeme == '#'){
+                   if (nextChar('+')) //increment
+                        state = 99;
+                }
+                else if (lexeme == '!'){
+                   if (nextChar('=')) //increment
+                        state = 100;
+                }
+                
                 else if (lexeme == '+' || lexeme == '-') {
                     if (nextChar('+')) //increment
                         state = 1;
@@ -1094,6 +1108,14 @@ public class Scanner {
                 if (lexeme == '/') // multi-line comment ended
                     state = 0;
                 break;
+            case 99:
+                token.add("[CONCAT]");
+                    state = 0;
+                break;
+                case 100:
+                token.add("[RELOP]");
+                    state = 0;
+                break;
             default:
                 token.add("ErrorCaseNum"); //should not happen once code is complete
                 state = 0;
@@ -1138,11 +1160,8 @@ public class Scanner {
 /*
 Sample code:
 MAIN {
-
 int num;			// this line shows declaration //
 num = 100;			// this line shows assignment //
-
 str word = "A string!";	// declaration and assignment //
-
 } end
 */

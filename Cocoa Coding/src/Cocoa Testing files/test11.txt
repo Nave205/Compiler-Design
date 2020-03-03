@@ -1,0 +1,21 @@
+
+MAIN{
+
+    int grade;
+    grade = INPUT();
+
+switch(grade) {
+case( 1 ):
+    OUTPUT("Amazing");
+    stop;
+case( 2 ):
+    OUTPUT("Very good");
+    stop;
+case( 3 ):
+    OUTPUT("Passed");
+    stop;
+def:
+    OUTPUT("Try Again next time");
+    stop;
+}
+} end
