@@ -11,6 +11,7 @@ public class Scanner {
     public static ReservedWords rwTable = new ReservedWords();
     public static HashMap<String, String> reservedWords = rwTable.predefineReserves();
     public static HashMap<String, String> identifiers = new HashMap<>();
+    ArrayList<String> error=new ArrayList<String>();//Creating arraylist    
     public static char lexeme;
     public static String code;
    
@@ -18,19 +19,40 @@ public class Scanner {
     
     public static void main(String args[]) {
 		try{
-			File file = new File("C:\\Users\\Blank\\Desktop\\Cocoa Test Files\\test1.txt"); 
+			File file = new File("C:\\Users\\Blank\\Desktop\\Cocoa Test Files\\error6.txt"); 
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String st; 
+                        int lineNumber = 0;
+                        int counter = 0;
+                        String error[] = new String[20]; 
+                        System.out.print("File Name:" + file + "\n");
+                        System.out.println("===============================================");
 			while ((st = br.readLine()) != null) {
 				code = st + " ";            //per line
                                 //System.out.println(st);
+                                
 				ArrayList < String > tokens = scan(code);
+                                lineNumber++;
 				for (int x = 0; x < tokens.size(); x++) {
 					System.out.print(tokens.get(x) + " ");
+                                        if(tokens.get(x).contains("ErrorCaseNum") || tokens.get(x).contains("Lexeme not in language")){
+                                            
+                                            error[counter] =  "Error at Line " + lineNumber +":  "+tokens.get(x); ;
+                                            counter++;
+                                        }
                                 }
-				System.out.println();
+				
+                                System.out.println();
 			} 
-                        System.out.print("\n\nError found:" + errorCount + "\n");
+                        
+                        System.out.println("===============================================");
+                        System.out.print("\nErrors found:" + errorCount + "\n");
+                        
+                        if(errorCount > 0){
+                            for(int x = 0;x < counter;x++){
+                               System.out.println(error[x]);
+                            }
+                        }
 			br.close();
 			//necessary for error handling
 		}
