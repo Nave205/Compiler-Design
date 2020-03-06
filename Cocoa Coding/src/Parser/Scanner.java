@@ -1,1150 +1,1266 @@
 package Parser;
+
 import java.util.ArrayList;
-import java.io.*; 
+import java.io.*;
 import java.util.HashMap;
 import ReservedHash.ReservedWords;
 
 public class Scanner {
+
     public static int state = 0,
-    c = 0, tokenStart=0, tokenEnd=0,
-    point = 0 ,errorCount = 0;
-    public static ReservedWords rwTable = new ReservedWords();
+            c = 0, tokenStart = 0, tokenEnd = 0,
+            point = 0, errorCount = 0;
+    public static final ReservedWords rwTable = new ReservedWords();
     public static HashMap<String, String> reservedWords = rwTable.predefineReserves();
     public static HashMap<String, String> identifiers = new HashMap<>();
-    ArrayList<String> error=new ArrayList<String>();//Creating arraylist    
+    ArrayList<String> error = new ArrayList<>();//Creating arraylist    
     public static char lexeme;
     public static String code;
-   
-    public static String id,stringlit,intlit,floatlit;
-    
+
+    public static String id, stringlit, intlit, floatlit;
+
     public static void main(String args[]) {
-		try{
-			File file = new File("C:\\Users\\Blank\\Desktop\\Cocoa Test Files\\error6.txt"); 
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String st; 
-                        int lineNumber = 0;
-                        int counter = 0;
-                        String error[] = new String[20]; 
-                        System.out.print("File Name:" + file + "\n");
-                        System.out.println("===============================================");
-			while ((st = br.readLine()) != null) {
-				code = st + " ";            //per line
-                                //System.out.println(st);
-                                
-				ArrayList < String > tokens = scan(code);
-                                lineNumber++;
-				for (int x = 0; x < tokens.size(); x++) {
-					System.out.print(tokens.get(x) + " ");
-                                        if(tokens.get(x).contains("ErrorCaseNum") || tokens.get(x).contains("Lexeme not in language")){
-                                            
-                                            error[counter] =  "Error at Line " + lineNumber +":  "+tokens.get(x); ;
-                                            counter++;
-                                        }
-                                }
-				
-                                System.out.println();
-			} 
-                        
-                        System.out.println("===============================================");
-                        System.out.print("\nErrors found:" + errorCount + "\n");
-                        
-                        if(errorCount > 0){
-                            for(int x = 0;x < counter;x++){
-                               System.out.println(error[x]);
-                            }
-                        }
-			br.close();
-			//necessary for error handling
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+        try {
+            File file = new File("src\\Cocoa Test Files\\test1.txt");
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String st;
+            int lineNumber = 0;
+            int counter = 0;
+            String error[] = new String[20];
+            System.out.print("File Name:" + file + "\n");
+            System.out.println("===============================================");
+            while ((st = br.readLine()) != null) {
+                code = st + " ";            //per line
+                ArrayList< String> tokens = scan(code);
+                lineNumber++;
+                for (int x = 0; x < tokens.size(); x++) {
+                    System.out.print("[" + tokens.get(x) + "] ");
+                    if (tokens.get(x).contains("ErrorCaseNum") || tokens.get(x).contains("Lexeme not in language")) {
+
+                        error[counter] = "Error at Line " + lineNumber + ", Column " + (counter + 1) + ":  " + tokens.get(x);
+                        counter++;
+                    }
+                }
+                System.out.println();
+            }
+
+            System.out.println("===============================================");
+            System.out.println("\nErrors found:" + errorCount);
+            System.out.println("===============================================");
+            System.out.println("\nIdentifiers Table:");
+            for (String key : identifiers.keySet()) {
+                System.out.println("VarName: " + key + "\tvalue: " + identifiers.get(key));
+            }
+
+            if (errorCount > 0) {
+                for (int x = 0; x < counter; x++) {
+                    System.out.println(error[x]);
+                }
+            }
+            br.close();
+            //necessary for error handling
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public static ArrayList < String > scan(String code) {
-      
-        ArrayList < String > token = new ArrayList <> ();
-        c=0;
+    public static ArrayList< String> scan(String code) {
+        ArrayList< String> token = new ArrayList<>();
+        c = 0;
         while (c < code.length()) {
             lexeme = code.charAt(c);
             //System.out.println("c = " + c + ": " + lexeme);
             switch (state) {
-            case 0: //beggining of all DFA's and Reserve words
-                if (lexeme == '(')
-                    token.add("[LPAREN]");
-                else if (lexeme == ')')
-                    token.add("[RPAREN]");
-                
-                else if (lexeme == '{')
-                    token.add("[LCURLY]");
-                else if (lexeme == '}')
-                    token.add("[RCURLY]");
-                else if (lexeme == ';')
-                    token.add("[SCLON]");
-                else if (lexeme == ':')
-                    token.add("[COLON]");
-                else if (lexeme == ',')
-                    token.add("[COMMA]");
-                else if (lexeme == '%')
-                    token.add("[MODULO]");
-                else if (lexeme == '#'){
-                   if (nextChar('+')) //increment
-                        state = 99;
-                }
-                else if (lexeme == '!'){
-                   if (nextChar('=')) //increment
-                        state = 100;
-                }
-                
-                else if (lexeme == '+' || lexeme == '-') {
-                    if (nextChar('+')) //increment
-                        state = 1;
-                    else if (nextChar('-')) //decrement
-                        state = 2;
-                    else
-                        token.add("[ADDSUB]");
-                } else if (lexeme == '*')
-                    token.add("[MULDIV]");
-                else if (lexeme == '^')
-                    token.add("[EXPON]");
-                else if (lexeme == '=') {
-                    if (nextChar('='))
+                case 0:
+                    if (lexeme == '{') {
+                        token.add("LCURLY");
+                    } else if (lexeme == '}') {
+                        token.add("RCURLY");
+                    } else if (lexeme == '(') {
+                        token.add("LPAREN");
+                    } else if (lexeme == ')') {
+                        token.add("RPAREN");
+                    } else if (lexeme == '#') {
+                        if (nextChar('+')) {
+                            state = 1;
+                        } else {
+                            token.add("Lexeme not in language: " + lexeme);
+                        }
+                    } else if (lexeme == '*') {
+                        token.add("MULDIV");
+                    } else if (lexeme == '+') {
+                        if (nextChar('+')) {
+                            state = 2;
+                        } else {
+                            token.add("ADDSUB");
+                        }
+                    } else if (lexeme == ',') {
+                        token.add("COMMA");
+                    } else if (lexeme == '-') {
                         state = 3;
-                    else
-                        token.add("[ASSIGN]");
-                } else if (Character.isDigit(lexeme)) //intlit, floatlit
-				{
-                    state = 4;
-					tokenStart=c;
-				}
-                else if (lexeme == '"')
-				{
-                    state = 5;
-					tokenStart=c;
-				}
-                else if (lexeme == '\'')
-				{
-                    state = 6;
-					tokenStart=c;
-				}
-                else if (lexeme == '>' || lexeme == '<') {
-                    if (nextChar('='))
-                        state = 7;
-                    else
-                        token.add("[RELOP]");
-                } else if (Character.isLetter(lexeme)) //id, boolconst, logical operators, reserved words
-                {
-                    switch (lexeme) //every option is a possible identifier
-                    {
-                    case 'A': //AND
-                        state = 8;
-                        break;
-                    case 'F': //FALSE
-                        state = 9;
-                        break;
-                    case 'I': //INPUT
+                        tokenStart = c;
+                    } else if (lexeme == '^') {
+                        token.add("EXPON");
+                    } else if (lexeme == '%') {
+                        token.add("MULDIV");
+                    } else if (lexeme == ':') {
+                        token.add("COLON");
+                    } else if (lexeme == ';') {
+                        token.add("SCLON");
+                    } else if (lexeme == '<') {
+                        if (nextChar('=')) {
+                            state = 5;
+                        } else {
+                            token.add("RELOP");
+                        }
+                    } else if (lexeme == '=') {
+                        if (nextChar('=')) {
+                            state = 6;
+                        } else {
+                            token.add("ASSIGN");
+                        }
+                    } else if (lexeme == '!') {
+                        if (nextChar('=')) {
+                            state = 7;
+                        } else {
+                            token.add("Lexeme not in language: " + lexeme);
+                        }
+                    } else if (lexeme == '>') {
+                        if (nextChar('=')) {
+                            state = 8;
+                        } else {
+                            token.add("RELOP");
+                        }
+                    } else if (lexeme == '/') {
+                        if (nextChar('/')) {
+                            state = 9;
+                        } else {
+                            token.add("MULDIV");
+                        }
+                    } else if (lexeme == '"') {
                         state = 10;
-                        break;
-                    case 'M': //MAIN
+                        tokenStart = c;
+                    } else if (lexeme == '\'') {
                         state = 11;
-                        break;
-                    case 'N': //NAND, NOR, NOT
-                        state = 12;
-                        break;
-                    case 'O': //OUTPUT
-                        state = 13;
-                        break;
-                    case 'T': //TRUE
-                        state = 14;
-                        break;
-                    case 'X': //XOR
-                        state = 15;
-                        break;
-                    case 'b': //bool
-                        state = 16;
-                        break;
-                    case 'c': //case
-                        state = 17;
-                        break;
-                    case 'd': //def
-                        state = 18;
-                        break;
-                    case 'e': //else, elseif, end
-                        state = 19;
-                        break;
-                    case 'f': //float, follow, for
-                        state = 20;
-                        break;
-                    case 'i': //if, int
-                        state = 21;
-                        break;
-                    case 's': //stop, str, switch
-                        state = 22;
-                        break;
-                    case 'w': //while
-                        state = 23;
-                        break;
-                    default:
-                        state = 24; //identifier state
-                        break;
+                        tokenStart = c;
+                    } else if (Character.isDigit(lexeme)) {
+                        state = 4;
+                        tokenStart = c;
+                    } else if (Character.isLetter(lexeme)) {
+                        switch (lexeme) {
+                            case 'A':
+                                state = 13;
+                                break;
+                            case 'B':
+                                state = 14;
+                                break;
+                            case 'C':
+                                state = 15;
+                                break;
+                            case 'D':
+                                state = 16;
+                                break;
+                            case 'E':
+                                state = 17;
+                                break;
+                            case 'F':
+                                state = 18;
+                                break;
+                            case 'I':
+                                state = 19;
+                                break;
+                            case 'M':
+                                state = 20;
+                                break;
+                            case 'N':
+                                state = 21;
+                                break;
+                            case 'O':
+                                state = 22;
+                                break;
+                            case 'S':
+                                state = 23;
+                                break;
+                            case 'T':
+                                state = 24;
+                                break;
+                            case 'W':
+                                state = 25;
+                                break;
+                            case 'X':
+                                state = 26;
+                                break;
+                            default:
+                                state = 27; //identifier state
+                                break;
+                        }
+                        tokenStart = c;
+                    } else if (Character.isWhitespace(lexeme)) {
+                    } //might need to add token [IGNORE]
+                    else {
+                        token.add("Lexeme not in language: " + lexeme);
                     }
-					tokenStart = c;
-                } 
-                else if (lexeme == '/') //either comment or divide
-                {
-                    if (nextChar('/'))
-                        state = 96; //state of comment DFA
-                    else
-                        token.add("[MULDIV]");
-                }
-				else if (Character.isWhitespace(lexeme)) // \n, \t, \r, ' ', EOL
-				{}
-				else
-				{
-                    token.add("ERR = Lexeme not in language : '" + lexeme + "'");
+                    // ============================ generally c = 1;
+                    break;
+                case 1:                     //guaranteed #+
+                    token.add("CONCAT");
+                    state = 0;
+                    break;
+                case 2:                     //guaranteed ++ 
+                    token.add("INCREMENT");
+                    state = 0;
+                    break;
+                case 3:                     //-_
+                    if (lexeme == '-') {
+                        token.add("DECREMENT");
+                        state = 0;
+                    } else if (Character.isDigit(lexeme)) {
+                        state = 4;
+                    } else {
+                        token.add("ADDSUB");
+                        pushback();
+                    }
+                    break;
+                case 4:                     //1_ or -1_
+                    if (lexeme == '.') {
+                        state = 12;
+                    } else if (!Character.isDigit(lexeme)) {
+                        pushback();
+                        token.add("INTLIT = " + getWord());
+                        identifiers.replace(id, getWord());
+                    }                       //else, stay in intlit state
+                    break;
+                case 5:                     //guaranteed <=
+                    token.add("RELOP");
+                    break;
+                case 6:
+                    token.add("RELOP");     //guaranteed ==
+                    break;
+                case 7:
+                    token.add("RELOP");     //guaranteed != 
+                    break;
+                case 8:
+                    token.add("RELOP");     //guaranteed >=
+                    break;
+                case 9:                     //guaranteed //
+                    state = 28;
+                    break;
+                case 10:                    // "_
+                    if (lexeme == '"') {
+                        tokenEnd = c;
+                        state = 0;
+                        token.add("STRINGLIT = " + getWord());
+                        identifiers.replace(id, getWord());
+                    }                       //else, stay in stringlit state. must error if EOL reached
+                    break;
+                case 11:                    // '_
+                    if (lexeme == '\'') {
+                        tokenEnd = c;
+                        state = 0;
+                        token.add("STRINGLIT = " + getWord());
+                        identifiers.replace(id, getWord());
+                    }                       //else, stay in stringlit state. must error if EOL reached
+                    break;
+                case 12:                    //1._ or -1._
+                    if (Character.isDigit(lexeme)) {
+                        state = 29;
+                    } else {
+                        token.add("Incorrect floatlit"); //think about it later
+                        state = 0;
+                    }
+                    break;
+                case 13:                    //A_
+                    if (lexeme == 'N') {
+                        state = 30;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 14:                    //B_
+                    if (lexeme == 'O') {
+                        state = 31;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 15:                    //C_
+                    if (lexeme == 'A') {
+                        state = 32;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 16:                    //D_
+                    if (lexeme == 'E') {
+                        state = 33;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 17:                    //E_
+                    if (lexeme == 'L') {
+                        state = 34;
+                    } else if (lexeme == 'N') {
+                        state = 35;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 18:                    //F_
+                    if (lexeme == 'A') {
+                        state = 36;
+                    } else if (lexeme == 'L') {
+                        state = 37;
+                    } else if (lexeme == 'O') {
+                        state = 38;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 19:                    //I_
+                    if (lexeme == 'F') {
+                        state = 39;
+                    }
+                    if (lexeme == 'N') {
+                        state = 40;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 20:                    //M_
+                    if (lexeme == 'A') {
+                        state = 41;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 21:                    //N_
+                    if (lexeme == 'A') {
+                        state = 42;
+                    } else if (lexeme == 'O') {
+                        state = 43;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 22:                    //O_
+                    if (lexeme == 'R') {
+                        state = 44;
+                    } else if (lexeme == 'U') {
+                        state = 45;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 23:                    //S_
+                    if (lexeme == 'T') {
+                        state = 46;
+                    } else if (lexeme == 'W') {
+                        state = 47;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 24:                    //T_
+                    if (lexeme == 'R') {
+                        state = 48;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 25:                    //W_
+                    if (lexeme == 'H') {
+                        state = 49;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 26:                    //X_
+                    if (lexeme == 'O') {
+                        state = 50;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 27:                    //identifier state
+                    if (!(Character.isLetter(lexeme) || Character.isDigit(lexeme))) {
+                        anIdentifier(token);
+                    }
+                    //else, stay in identifier state. must error if EOF reached?
+                    break;
+                // ============================ generally c = 2;
+                case 28:                    // currently //_//
+                    if (lexeme == '/') {
+                        state = 51;
+                    }
+                    break;
+                case 29:                    //floatlit state
+                    if (!Character.isDigit(lexeme)) {
+                        pushback();
+                        token.add("FLOATLIT = " + getWord());
+                        identifiers.replace(id, getWord());
+                    }                       //else, stay in identifier state. must error if EOF reached?
+                    break;
+                case 30:                    //AN_
+                    if (lexeme == 'D') {
+                        state = 52;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 31:                    //BO_
+                    if (lexeme == 'O') {
+                        state = 53;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 32:                    //CA_
+                    if (lexeme == 'S') {
+                        state = 54;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 33:                    //DE_
+                    if (lexeme == 'F') {
+                        state = 55;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 34:                    //EL_
+                    if (lexeme == 'S') {
+                        state = 56;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 35:                    //EN_
+                    if (lexeme == 'D') {
+                        state = 57;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 36:                    //FA_
+                    if (lexeme == 'L') {
+                        state = 58;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 37:                    //FL_
+                    if (lexeme == 'O') {
+                        state = 59;
+                    } else if (lexeme == 'T') {
+                        state = 60;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 38:                    //FO_
+                    if (lexeme == 'L') {
+                        state = 61;
+                    } else if (lexeme == 'R') {
+                        state = 62;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 39:                    //IF_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("IF"));
+                    }
+                    break;
+                case 40:                    //IN_
+                    if (lexeme == 'P') {
+                        state = 63;
+                    } else if (lexeme == 'T') {
+                        state = 64;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 41:                    //MA_
+                    if (lexeme == 'I') {
+                        state = 65;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 42:                    //NA_
+                    if (lexeme == 'N') {
+                        state = 66;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 43:                    //NO_
+                    if (lexeme == 'R') {
+                        state = 67;
+                    } else if (lexeme == 'T') {
+                        state = 68;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 44:                    //OR_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("OR");
+                    }
+                    break;
+                case 45:                    //OU_
+                    if (lexeme == 'T') {
+                        state = 69;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 46:                    //ST_
+                    if (lexeme == 'O') {
+                        state = 70;
+                    } else if (lexeme == 'R') {
+                        state = 71;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 47:                    //SW_
+                    if (lexeme == 'I') {
+                        state = 72;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 48:                    //TR_
+                    if (lexeme == 'U') {
+                        state = 73;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 49:                    //WH_
+                    if (lexeme == 'I') {
+                        state = 74;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 50:                    //XO_
+                    if (lexeme == 'R') {
+                        state = 75;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                //  ============================ generally c = 3;
+                case 51:                    // currently at ///_/
+                    if (lexeme == '/') {
+                        state = 0;
+                    } else {
+                        state = 28;         //sample: //abc/a  (resets to //_ ?) might need to rework DFA
+                    }
+                    break;
+                case 52:                    //AND_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("AND");
+                    }
+                    break;
+                case 53:                    //BOO_
+                    if (lexeme == 'L') {
+                        state = 76;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 54:                    //CAS_
+                    if (lexeme == 'E') {
+                        state = 77;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 55:                    //DEF_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("DEF"));
+                    }
+                    break;
+                case 56:                    //ELS_
+                    if (lexeme == 'E') {
+                        state = 78;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 57:                    //END_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("END"));
+                    }
+                case 58:                    //FAL_
+                    if (lexeme == 'S') {
+                        state = 79;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 59:                    //FLO_
+                    if (lexeme == 'A') {
+                        state = 80;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 60:                    //FLT_
+                    if (lexeme == '2') {
+                        state = 81;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 61:                    //FOL_
+                    if (lexeme == 'L') {
+                        state = 82;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 62:                    //FOR_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("FOR"));
+                    }
+                case 63:                    //INP_
+                    if (lexeme == 'U') {
+                        state = 83;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 64:                    //INT_
+                    if (lexeme == '2') {
+                        state = 84;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("INT");
+                    }
+                    break;
+                case 65:                    //MAI_
+                    if (lexeme == 'N') {
+                        state = 85;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 66:                    //NAN_
+                    if (lexeme == 'D') {
+                        state = 86;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 67:                    //NOR_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("NOR");
+                    }
+                    break;
+                case 68:                    //NOT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("NOT");
+                    }
+                    break;
+                case 69:                    //OUT_
+                    if (lexeme == 'P') {
+                        state = 87;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 70:                    //STO_
+                    if (lexeme == 'P') {
+                        state = 88;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 71:                    //STR_
+                    if (lexeme == '2') {
+                        state = 89;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("STR"));
+                    }
+                    break;
+                case 72:                    //SWI_
+                    if (lexeme == 'T') {
+                        state = 90;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 73:                    //TRU_
+                    if (lexeme == 'E') {
+                        state = 91;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 74:                    //WHI_
+                    if (lexeme == 'L') {
+                        state = 92;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 75:                    //XOR_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 75;
+                    } else {
+                        pushback();
+                        token.add("XOR");
+                    }
+                    break;
+                //  ============================ generally c = 4;
+                case 76:                    //BOOL_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("BOOL"));
+                    }
+                    break;
+                case 77:                    //CASE_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("CASE"));
+                    }
+                    break;
+                case 78:                    //ELSE_
+                    if (lexeme == 'I') {
+                        state = 93;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("ELSE"));
+                    }
+                    break;
+                case 79:                    //FALS_
+                    if (lexeme == 'E') {
+                        state = 94;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 80:                    //FLOA_
+                    if (lexeme == 'T') {
+                        state = 95;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 81:                    //FLT2_
+                    if (lexeme == 'I') {
+                        state = 96;
+                    } else if (lexeme == 'S') {
+                        state = 97;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 82:                    //FOLL_
+                    if (lexeme == 'O') {
+                        state = 98;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 83:                    //INPU_
+                    if (lexeme == 'T') {
+                        state = 99;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 84:                    //INT2_
+                    if (lexeme == 'F') {
+                        state = 100;
+                    } else if (lexeme == 'S') {
+                        state = 101;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 85:                    //MAIN_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("MAIN"));
+                    }
+                    break;
+                case 86:                    //NAND_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("NAND");
+                    }
+                    break;
+                case 87:                    //OUTP_
+                    if (lexeme == 'U') {
+                        state = 102;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 88:                    //STOP_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("STOP"));
+                    }
+                    break;
+                case 89:                    //STR2_
+                    if (lexeme == 'F') {
+                        state = 103;
+                    } else if (lexeme == 'I') {
+                        state = 104;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 90:                    //SWIT_
+                    if (lexeme == 'C') {
+                        state = 105;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 91:                    //TRUE_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("TRUE");
+                    }
+                    break;
+                case 92:                    //WHIL_
+                    if (lexeme == 'E') {
+                        state = 106;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                //  ============================ generally c = 5;
+                case 93:                    //ELSEI_
+                    if (lexeme == 'F') {
+                        state = 107;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 94:                    //FALSE_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add("FALSE");
+                    }
+                    break;
+                case 95:                    //FLOAT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("FLOAT"));
+                    }
+                    break;
+                case 96:                    //FLT2I_
+                    if (lexeme == 'N') {
+                        state = 108;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 97:                    //FLT2S_
+                    if (lexeme == 'T') {
+                        state = 109;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 98:                    //FOLLO_
+                    if (lexeme == 'W') {
+                        state = 110;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 99:                    //INPUT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("INPUT"));
+                    }
+                    break;
+                case 100:                    //INT2F_
+                    if (lexeme == 'L') {
+                        state = 111;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 101:                    //INT2S_
+                    if (lexeme == 'T') {
+                        state = 111;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 102:                    //OUTPU_
+                    if (lexeme == 'T') {
+                        state = 112;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 103:                    //STR2F_
+                    if (lexeme == 'T') {
+                        state = 113;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 104:                    //STR2I_
+                    if (lexeme == 'N') {
+                        state = 114;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 105:                    //SWITC_
+                    if (lexeme == 'H') {
+                        state = 116;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 106:                    //WHILE_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("WHILE"));
+                    }
+                    break;
+                //  ============================ generally c = 6;
+                case 107:                    //ELSEIF_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("ELSEIF"));
+                    }
+                    break;
+                case 108:                    //FLT2IN_
+                    if (lexeme == 'T') {
+                        state = 117;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 109:                    //FLT2ST_
+                    if (lexeme == 'R') {
+                        state = 118;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 110:                    //FOLLOW_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("FOLLOW"));
+                    }
+                    break;
+                case 111:                    //INT2FL_
+                    if (lexeme == 'T') {
+                        state = 119;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 112:                    //INT2ST_
+                    if (lexeme == 'R') {
+                        state = 120;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 113:                    //OUTPUT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("OUTPUT"));
+                    }
+                    break;
+                case 114:                    //STR2FL_
+                    if (lexeme == 'T') {
+                        state = 121;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 115:                    //STR2IN_
+                    if (lexeme == 'T') {
+                        state = 122;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 116:                    //SWITCH_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("SWITCH"));
+                    }
+                    break;
+                //  ============================ generally c = 6;
+                case 117:                    //FLT2INT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("FLT2INT"));
+                    }
+                    break;
+                case 118:                    //FLT2STR_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("FLT2STR"));
+                    }
+                    break;
+                case 119:                    //INT2FLT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("INT2FLT"));
+                    }
+                    break;
+                case 120:                    //INT2STR_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("INT2STR"));
+                    }
+                    break;
+                case 121:                    //STR2FLT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("STR2FLT"));
+                    }
+                    break;
+                case 122:                    //STR2INT_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("STR2INT"));
+                    }
+                    break;
+                default:
+                    token.add("ErrorCaseNum"); //should not happen once code is complete
+                    state = 0;
                     errorCount += 1;
-				}
-                break;
-            case 1:
-                token.add("[INCREMENT]");
-                state = 0;
-                break;
-            case 2:
-                token.add("[DECREMENT]");
-                state = 0;
-                break;
-            case 3:
-                token.add("[RELOP]"); //==
-                state = 0;
-                break;
-            case 4:
-                if (lexeme == '.')
-                    state = 25; //float
-                else if (Character.isDigit(lexeme)) {}
-                else {
-                    pushback();
-                    token.add("[INTLIT = " + getWord() + "]");
-                    identifiers.replace(id, getWord());
-                }
-                break;
-            case 5:
-                if (lexeme == '"') {
-                    state=0;
-		    tokenEnd=c;
-                    token.add("[STRINGLIT = " + getWord() + "]");
-                    identifiers.replace(id, getWord());
-                }
-                break;
-            case 6:
-                if (lexeme == '\'') {
-                    state=0;
-                    tokenEnd=c;
-                    token.add("[STRINGLIT = " + getWord() + "]");
-                    identifiers.replace(id, getWord());
-                }
-                break;
-            case 7: //>=, <=
-                token.add("[RELOP]");
-                state = 0;
-            case 8:
-                if (lexeme == 'N') //AN-D
-                    state = 26;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 9:
-                if (lexeme == 'A') //FA-LSE
-                    state = 27;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 10:
-                if (lexeme == 'N')
-                    state = 28; //IN-PUT
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 11:
-                if (lexeme == 'A')
-                    state = 29; //MA-IN
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 12:
-                if (lexeme == 'A') //NA-ND
-                    state = 30;
-                else if (lexeme == 'O') //NO-R, NO-T
-                    state = 31;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 13:
-                if (lexeme == 'U') //OU-TPUT
-                    state = 32;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 14:
-                if (lexeme == 'R') //TR-UE
-                    state = 33;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 15:
-                if (lexeme == 'O') //XO-R
-                    state = 34;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 16:
-                if (lexeme == 'o') //bo-ol
-                    state = 35;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 17:
-                if (lexeme == 'a') //ca-se
-                    state = 36;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 18:
-                if (lexeme == 'e') //de-f
-                    state = 37;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 19:
-                if (lexeme == 'l') //el-se, el-seif
-                    state = 38;
-                else if (lexeme == 'n') //en-d
-                    state = 39;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 20:
-                if (lexeme == 'l') //fl-oat
-                    state = 40;
-                else if (lexeme == 'o') //fo-llow, fo-r
-                    state = 41;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 21:
-                if (lexeme == 'f') //if
-                    state = 42;
-                else if (lexeme == 'n') //in-t
-                    state = 43;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    state = 0;
-                    c--;
-                }
-                break;
-            case 22:
-                if (lexeme == 't') //st-op, st-r
-                    state = 44;
-                else if (lexeme == 'w') //sw-itch
-                    state = 45;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 23:
-                if (lexeme == 'h') //wh-ile
-                    state = 46;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 24:
-                if (!(Character.isLetter(lexeme) || Character.isDigit(lexeme))) {
-                    pushback();
-                    token.add("[ID = " + getWord() + "]");
-                    identifiers.put(id, null);
-                }
-                break;
-            case 25:
-                if (!Character.isDigit(lexeme)) {
-                    token.add("[FLOAT]");
-                    pushback();
-                }
-                break;
-            case 26:
-                if (lexeme == 'D') //AND
-                    state = 47;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 27:
-                if (lexeme == 'L') //FAL-SE
-                    state = 48;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 28:
-                if (lexeme == 'P') //INP-UT
-                    state = 49;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 29:
-                if (lexeme == 'I') //MAI-N
-                    state = 50;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 30:
-                if (lexeme == 'N') //NAN-D
-                    state = 51;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 31:
-                if (lexeme == 'R') //NOR
-                    state = 52;
-                else if (lexeme == 'T') //NOT
-                    state = 53;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 32:
-                if (lexeme == 'T') //OUT-PUT
-                    state = 54;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 33:
-                if (lexeme == 'U') //TRU-E
-                    state = 55;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 34:
-                if (lexeme == 'R') //XOR
-                    state = 56;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 35:
-                if (lexeme == 'o') //boo-l
-                    state = 57;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 36:
-                if (lexeme == 's') //cas-e
-                    state = 58;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 37:
-                if (lexeme == 'f') //def
-                    state = 59;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 38:
-                if (lexeme == 's') //els-e
-                    state = 60;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 39:
-                if (lexeme == 'd') //end
-                    state = 61;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 40:
-                if (lexeme == 'o') //flo-at
-                    state = 62;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 41:
-                if (lexeme == 'l') //fol-low
-                    state = 63;
-                else if (lexeme == 'r') //for
-                    state = 64;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 42: //if_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("if"));
-                    pushback();
-                }
-                break;
-            case 43:
-                if (lexeme == 't') //int
-                    state = 65;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 44:
-                if (lexeme == 'o') //sto-p
-                    state = 66;
-                else if (lexeme == 'r') //str
-                    state = 67;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 45:
-                if (lexeme == 'i') //swi-tch
-                    state = 68;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 46:
-                if (lexeme == 'i') //whi-le
-                    state = 69;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 47:
-
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) //AND_
-                    state = 24;
-                else {
-                    token.add("[AND]");
-                    pushback();
-                }
-                break;
-            case 48:
-                if (lexeme == 'S') //FALS-E
-                    state = 70;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 49:
-                if (lexeme == 'U') //INPU-T
-                    state = 71;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 50:
-                if (lexeme == 'N') //MAIN
-                    state = 72;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 51:
-                if (lexeme == 'D') //NAND
-                    state = 73;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    state = 0;
-                    c--;
-                }
-                break;
-            case 52:
-                //NOR_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[NOR]");
-                    pushback();
-                }
-                break;
-            case 53:
-                //NOT_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[NOT]");
-                    pushback();
-                }
-                break;
-            case 54:
-                if (lexeme == 'P') //OUTP-UT
-                    state = 74;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 55:
-                if (lexeme == 'E') //TRUE
-                    state = 75;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 56:
-                //XOR_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[XOR]");
-                    pushback();
-                }
-                break;
-            case 57:
-                if (lexeme == 'l') //bool
-                    state = 76;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 58:
-                if (lexeme == 'e') //case
-                    state = 77;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 59:
-                //def_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("def"));
-                    pushback();
-                }
-                break;
-            case 60:
-                if (lexeme == 'e') //else, else-if
-                    state = 78;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 61:
-                //end_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("end"));
-                    pushback();
-                }
-                break;
-            case 62:
-                if (lexeme == 'a') //floa-t
-                    state = 79;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 63:
-                if (lexeme == 'l') //foll-ow
-                    state = 80;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 64:
-                //for_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("for"));
-                    pushback();
-                }
-                break;
-            case 65:
-                //int_
-
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("int"));
-                    pushback();
-                }
-                break;
-            case 66:
-                if (lexeme == 'p') //stop
-                    state = 81;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 67:
-                //str_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("str"));
-                    pushback();
-                }
-                break;
-            case 68:
-                if (lexeme == 't') //swit-ch
-                    state = 82;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 69:
-                if (lexeme == 'l') //whil-e
-                    state = 83;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 70:
-                if (lexeme == 'E') //FALSE
-                    state = 84;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 71:
-                if (lexeme == 'T') //INPUT
-                    state = 85;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 72:
-                //MAIN_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("MAIN"));
-                    pushback();
-                }
-                break;
-            case 73:
-                //NAND_
-
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[NAND]");
-                    pushback();
-                }
-                break;
-            case 74:
-                if (lexeme == 'U') //OUTPU-T
-                    state = 86;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 75:
-                //TRUE_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[TRUE]");
-                    pushback();
-                }
-                break;
-            case 76:
-                //bool_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("bool"));
-                    pushback();
-                }
-                break;
-            case 77:
-                //case_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("case"));
-                    pushback();
-                }
-                break;
-            case 78:
-                if (lexeme == 'i') //else_, elsei-f
-                    state = 87;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("else"));
-                    pushback();
-                }
-                break;
-            case 79:
-                if (lexeme == 't') //float
-                    state = 88;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 80:
-                if (lexeme == 'o') //follo-w
-                    state = 89;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 81:
-                //stop_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("stop"));
-                    pushback();
-                }
-                break;
-            case 82:
-                if (lexeme == 'c') //switc-h
-                    state = 90;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 83:
-                if (lexeme == 'e') //while
-                    state = 91;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-                //----------c=4
-            case 84:
-                //FALSE_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[FALSE]");
-                    pushback();
-                }
-                break;
-            case 85:
-                //INPUT_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("INPUT"));
-                    pushback();
-                }
-                break;
-            case 86:
-                if (lexeme == 'T') //OUTPUT
-                    state = 92;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 87:
-                if (lexeme == 'f') //elseif
-                    state = 93;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 88:
-                //float_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("float"));
-                    pushback();
-                }
-                break;
-            case 89:
-                if (lexeme == 'w') //follow
-                    state = 94;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 90:
-                if (lexeme == 'h') //switch
-                    state = 95;
-                else if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add("[ID]");
-                    pushback();
-                }
-                break;
-            case 91:
-                //while_
-
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("while"));
-                    pushback();
-                }
-                break;
-                //-------------c=5
-            case 92:
-                //OUTPUT_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("OUTPUT"));
-                    pushback();
-                }
-                break;
-            case 93:
-                //elseif_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("elseif"));
-                    pushback();
-                }
-                break;
-            case 94:
-                //follow_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("follow"));
-                    pushback();
-                }
-                break;
-            case 95:
-                //switch_
-                if (Character.isLetter(lexeme) || Character.isDigit(lexeme))
-                    state = 24;
-                else {
-                    token.add(reservedWords.get("switch"));
-                    pushback();
-                }
-                break;
-            case 96:
-                if (lexeme == '/')
-                    state = 97;
-                else {
-                    token.add("Error: /");
-                    pushback();
-                }
-                break;
-            case 97:
-                if (lexeme == '/')
-                    state = 98;
-                break;
-            case 98:
-                if (lexeme == '/') // multi-line comment ended
-                    state = 0;
-                break;
-            case 99:
-                token.add("[CONCAT]");
-                    state = 0;
-                break;
-                case 100:
-                token.add("[RELOP]");
-                    state = 0;
-                break;
-            default:
-                token.add("ErrorCaseNum"); //should not happen once code is complete
-                state = 0;
-                errorCount += 1;
             }
             c++;
         }
@@ -1154,40 +1270,34 @@ public class Scanner {
     public static boolean nextChar(char letter) //good for single look ahead
     {
         try {
-            lexeme = code.charAt(c + 1);
-            return (letter == lexeme);
+            char test = code.charAt(c + 1);
+            //System.out.println(test);
+            return (letter == test);
         } catch (Exception e) {
+            System.out.println("nextChar error?");
             return false;
         }
     }
 
-    public static String getWord() 			//identifier, stringlit, intlit, floatlit
-    {
-		String substring = "";				//code similar to substring
-        for(int x = tokenStart; x <= tokenEnd; x++)
-		{
-			substring = substring + code.charAt(x);
-		}
+    public static void anIdentifier(ArrayList<String> token) {
+        pushback();
+        id = getWord();
+        token.add("ID = " + id);
+        identifiers.put(id, null);       //add identifier to hashMap
+    }
+
+    public static String getWord() { //identifier, stringlit, intlit, floatlit. Code similar to substring()
+        String substring = "";
+        for (int x = tokenStart; x <= tokenEnd; x++) {
+            substring = substring + code.charAt(x);
+        }
         return substring;
     }
 
-    public static void pushback() //return state to 0 and move back 1 space
-    {
+    public static void pushback() {  //return state to 0 and move back 1 space
         state = 0;
         c--;
-		tokenEnd = c;
+        tokenEnd = c;
     }
 }
-
 //note: add seperate state for error ?
-//		unary plus/minus problem
-//
-
-/*
-Sample code:
-MAIN {
-int num;			// this line shows declaration //
-num = 100;			// this line shows assignment //
-str word = "A string!";	// declaration and assignment //
-} end
-*/
