@@ -1,0 +1,37 @@
+{
+}
+(
+)
+#+
+*
++
+++
+,
+-
+--
+^
+%
+:
+;
+<
+<=
+=
+==
+!=
+>
+>=
+/
+//  //  *** (multi line comment, must error if // not found in EOF)
+"string" *** (String literal)
+'lit' *** (String literal)
+01234 *** (int literal, can have -)
+123.45 *** (float literal, can have -)
+AND
+FALSE
+NAND
+NOR
+NOT
+OR
+TRUE
+XOR
+identifier9 *** (identifier)

@@ -1,0 +1,26 @@
+ADDSUB:
+	+
+	-
+MULDIV:
+	*
+	/
+	%
+RELOP:
+	==
+	<
+	>
+	>=
+	<=
+	!=
+IGNORE:
+	\s
+	\n
+	\t
+	[note: add carriage return \r and possibly EOF]
+CONVERT:
+	STR2INT
+	INT2STR
+	FLT2STR
+	INT2FLT
+	FLT2INT
+	STR2FLT

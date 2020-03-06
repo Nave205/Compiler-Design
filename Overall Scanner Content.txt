@@ -1,0 +1,62 @@
+{
+}
+(
+)
+#+
+*
++
+++
+,
+-
+--
+^
+%
+:
+;
+<
+<=
+=
+==
+!=
+>
+>=
+/
+//  //  			*** (multi-line comment)
+"string" 			*** (String literal)
+'lit' 				*** (String literal)
+01234 				*** (int literal, can have -)
+123.45 				*** (float literal, can have -)
+identifier9 			*** (identifier)
+AND
+BOOL
+CASE
+DEF
+ELSE
+ELSEIF
+END
+FALSE
+FLOAT
+FOLLOW
+FOR
+FLT2INT
+FLT2STR
+IF
+INPUT
+INT
+INT2FLT
+INT2STR
+MAIN
+NAND
+NOR
+NOT
+OR
+OUTPUT
+STOP
+STR
+STR2FLT
+STR2INT
+SWITCH
+TRUE
+WHILE
+XOR
+
