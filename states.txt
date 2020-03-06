@@ -1,101 +1,261 @@
--------- c=0
-8 = A-ND
-9 = F-ALSE
-10 = I-NPUT
-11 = M-AIN
-12 = N-AND, N-OR, N-OT
-13 = O-UTPUT
-14 = T-RUE
-15 = X-OR
-16 = b-ool
-17 = c-ase
-18 = d-ef
-19 = e-lse, e-lseif, e-nd
-20 = f-loat, f-ollow, f-or
-21 = i-f, i-nt
-22 = s-top, s-tr, s-witchww
-23 = w-hile
-*24 = (identifier)
--------- c=1
-*25 = (floatlit)
-26 = AN-D
-27 = FA-LSE
-28 = IN-PUT
-29 = MA-IN
-30 = NA-ND
-31 = NO-R, NO-T
-32 = OU-TPUT
-33 = TR-UE
-34 = XO-R
-35 = bo-ol
-36 = ca-se
-37 = de-f
-38 = el-se, el-seif
-39 = en-d
-40 = fl-oat
-41 = fo-llow, fo-r
-42 = if
-43 = in-t
-44 = st-op, st-r
-45 = sw-itch
-46 = wh-ile
--------- c=2
-47 = AND
-48 = FAL-SE
-49 = INP-UT
-50 = MAI-N
-51 = NAN-D
-52 = NOR
-53 = NOT
-54 = OUT-PUT
-55 = TRU-E
-56 = XOR
-57 = boo-l
-58 = cas-e
-59 = def
-60 = els-e, els-eif
-61 = end
-62 = flo-at
-63 = fol-low
-64 = for
-65 = int
-66 = sto-p
-67 = str
-68 = swi-tch
-69 = whi-le
--------- c=3
-70 = FALS-E
-71 = INPU-T
-72 = MAIN
-73 = NAND
-74 = OUTP-UT
-75 = TRUE
-76 = bool
-77 = case
-78 = else, else-if
-79 = floa-t
-80 = foll-ow
-81 = stop
-82 = swit-ch
-83 = whil-e
--------- c=4
-84 = FALSE
-85 = INPUT
-86 = OUTPU-T
-87 = elsei-f
-88 = float
-89 = follo-w
-90 = switc-h
-91 = while
--------- c=5
-92 = OUTPUT
-93 = elseif
-94 = follow
-95 = switch
---------
-(0 = / )
-96 = //-//
-97 = ///-/
-98 = ////
-anything w/o dash means could be itself or identifier
-* means loop
+legned of states:
+	left of | indicates character location
+	*** means loop is involved in regular expression
+	(state = n) means if (lexeme == certain character), go to state n
+	isLetter, isDigit, isWhitespace indicates the type of character
+	[] for comments on specific lexemes
+--------------------------------- character location = 0
+State 0
+{
+}
+(
+)
+# | +    	(state = 1)
+*
++
++ | +    	(state = 2)
+,
+-		
+- | -	 	(state = 3)
+- | 0 		(state = 4)	*** [int/float literal, can have -]
+^
+%
+:
+;
+<		
+< | =		(state = 5)
+=		
+= | =		(state = 6)
+! | =		(state = 7)
+>		
+> | =		(state = 8)
+/		
+/ | /  //  	(state = 9)		*** [multi-line comment]
+" | string" 	(state = 10)	*** [String literal]
+' | lit' 	(state = 11)	*** [String literal]
+(isNumber)
+0 | 1234	(state = 4)	*** [int literal, can have -]
+1 | .45 	(state = 12)	*** [float literal]
+(isLetter)
+A | ND		(state = 13)
+B | OOL		(state = 14)
+C | ASE		(state = 15)
+D | EF		(state = 16)
+E | LSE		(state = 17)
+E | LSEIF	(state = 17)
+E | ND		(state = 17)
+F | ALSE	(state = 18)
+F | LOAT	(state = 18)
+F | LT2INT 	(state = 18)
+F | LT2STR 	(state = 18)
+F | OLLOW	(state = 18)
+F | OR		(state = 18)
+I | F		(state = 19)
+I | NPUT	(state = 19)
+I | NT		(state = 19)
+I | NT2FLT 	(state = 19)
+I | NT2STR 	(state = 19)
+M | AIN		(state = 20)
+N | AND		(state = 21)
+N | OR		(state = 21)
+N | OT		(state = 21)
+O | R		(state = 22)
+O | UTPUT	(state = 22)
+S | TOP		(state = 23)
+S | TR		(state = 23)
+S | TR2FLT 	(state = 23)
+S | TR2INT 	(state = 23)
+S | WITCH	(state = 23)
+T | RUE		(state = 24)
+W | HILE	(state = 25)
+X | OR		(state = 26)
+i | dentifier9 	(state = 27)	*** [identifier]
+[isLetter | isLetter (state = 27) ] 
+(isWhitespace)
+[escape characters, do nothing]
+
+
+else: Not in language
+--------------------------------- character location = 1
+#+ | 
+++ |
+-- |
+<= |
+== |
+!= |
+>= |
+// | //	***	(state = 28)
+[string "lit" state]	***
+[string 'lit' state]	***
+(isNumber)
+[int state]		***
+1. | 123 	(state = 29) *** [float state must be 0.(isDigit) else error (0.=) ]
+(isLetter)
+AN | D		(state = 30)
+BO | OL		(state = 31)
+CA | SE		(state = 32)
+DE | F		(state = 33)
+EL | SE		(state = 34)
+EL | SEIF	(state = 34)
+EN | D		(state = 35)
+FA | LSE	(state = 36)
+FL | OAT	(state = 37)
+FL | T2INT 	(state = 37)
+FL | T2STR 	(state = 37)
+FO | LLOW	(state = 38)
+FO | R		(state = 38)
+IF |		(state = 39)
+IN | PUT	(state = 40)
+IN | T		(state = 40)
+IN | T2FLT 	(state = 40)
+IN | T2STR 	(state = 40)
+MA | IN		(state = 41)
+NA | ND		(state = 42)
+NO | R		(state = 43)
+NO | T		(state = 43)
+OR |		(state = 44)
+OU | TPUT	(state = 45)
+ST | OP		(state = 46)
+ST | R		(state = 46)
+ST | R2FLT 	(state = 46)
+ST | R2INT 	(state = 46)
+SW | ITCH	(state = 47)
+TR | UE		(state = 48)
+WH | ILE	(state = 49)
+XO | R		(state = 50)
+[identifier state]	***
+[isLetter isLetter | isLetter (state = 27) ] 
+--------------------------------- character location = 2
+/// | / ***	(state = 51) 	// currently at //_//
+[string "lit" state]	***
+[string 'lit' state]	***
+(isNumber)
+[int state]		***
+[float lit state]	***
+(isLetter)
+AND |		(state = 52)
+BOO | L		(state = 53)
+CAS | E		(state = 54)
+DEF |		(state = 55)
+ELS | E		(state = 56)
+ELS | EIF	(state = 56)
+END |		(state = 57)
+FAL | SE	(state = 58)
+FLO | AT	(state = 59)
+FLT | 2INT 	(state = 60)
+FLT | 2STR	(state = 60)
+FOL | LOW	(state = 61)
+FOR |		(state = 62)
+INP | UT	(state = 63)
+INT |		(state = 64)
+INT | 2FLT 	(state = 64)
+INT | 2STR	(state = 64)
+MAI | N		(state = 65)
+NAN | D		(state = 66)
+NOR |		(state = 67)
+NOT |		(state = 68)
+OUT | PUT	(state = 69)
+STO | P		(state = 70)
+STR | 		(state = 71)
+STR | 2FLT 	(state = 71)
+STR | 2INT 	(state = 71)
+SWI | TCH	(state = 72)
+TRU | E		(state = 73)
+WHI | LE	(state = 74)
+XOR |		(state = 75)
+[identifier state]	***
+[isLetter isLetter isLetter | isLetter (state = 27) ] 
+--------------------------------- character location = 3
+//// |
+[string "lit" state]	***
+[string 'lit' state]	***
+(isNumber)
+[int state]		***
+[float lit state]	***
+(isLetter)
+BOOL | 		(state = 76)
+CASE | 		(state = 77)
+ELSE | 		(state = 78)
+ELSE | IF	(state = 78)
+FALS | E	(state = 79)
+FLOA | T	(state = 80)
+FLT2 | INT 	(state = 81)
+FLT2 | STR 	(state = 81)
+FOLL | OW	(state = 82)
+INPU | T	(state = 83)
+INT2 | FLT 	(state = 84)
+INT2 | STR 	(state = 84)
+MAIN | 		(state = 85)
+NAND | 		(state = 86)
+OUTP | UT	(state = 87)
+STOP | 		(state = 88)
+STR2 | FLT 	(state = 89)
+STR2 | INT 	(state = 89)
+SWIT | CH	(state = 90)
+TRUE | 		(state = 91)
+WHIL | E	(state = 92)
+[identifier state]	***
+[isLetter isLetter isLetter isLetter | isLetter (state = 27) ] 
+--------------------------------- character location = 4
+[string "lit" state]	***
+[string 'lit' state]	***
+(isNumber)
+[int state]		***
+[float lit state]	***
+(isLetter)
+ELSEI | F	(state = 93)
+FALSE | 	(state = 94)
+FLOAT | 	(state = 95)
+FLT2I | NT 	(state = 96)
+FLT2S | TR 	(state = 97)
+FOLLO | W	(state = 98)
+INPUT | 	(state = 99)
+INT2F | LT 	(state = 100)
+INT2S | TR 	(state = 101)
+OUTPU | T	(state = 102)
+STR2F | LT 	(state = 103)
+STR2I | NT 	(state = 104)
+SWITC | H	(state = 105)
+WHILE | 	(state = 106)
+[identifier state]	***
+[isLetter isLetter isLetter isLetter isLetter | isLetter (state = 27) ] 
+--------------------------------- character location = 5
+[string "lit" state]	***
+[string 'lit' state]	***
+(isNumber)
+[int state]		***
+[float lit state]	***
+(isLetter)
+ELSEIF | 	(state = 107)
+FLT2IN | T 	(state = 108)
+FLT2ST | R 	(state = 109)
+FOLLOW |	(state = 110)
+INT2FL | T 	(state = 111)
+INT2ST | R 	(state = 112)
+OUTPUT | 	(state = 113)
+STR2FL | T 	(state = 114)
+STR2IN | T 	(state = 115)
+SWITCH | 	(state = 116)
+[identifier state]	***
+[isLetter isLetter isLetter isLetter isLetter  isLetter | isLetter (state = 27) ] 
+--------------------------------- character location = 6
+[string "lit" state]	***
+[string 'lit' state]	***
+(isNumber)
+[int state]		***
+[float lit state]	***
+(isLetter)	
+FLT2INT | 	(state = 117)
+FLT2STR | 	(state = 118)
+INT2FLT |  	(state = 119)
+INT2STR |  	(state = 120)
+STR2FLT |  	(state = 121)
+STR2INT |  	(state = 122)
+[identifier state]	***
+[isLetter isLetter isLetter isLetter isLetter isLetter isLetter | isLetter (state = 27) ] 
+--------------------------------- character location >= 7
+[string "lit" state]	***
+[string 'lit' state]	***
+[int state]		***
+[float lit state]	***
+[identifier state]	***
