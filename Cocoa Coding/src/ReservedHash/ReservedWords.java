@@ -31,24 +31,3 @@ public class ReservedWords {
         return reservedWords;
     }
 }
-
-/*
-INPUT
-MAIN
-OUTPUT
-bool
-case
-def
-else
-elseif
-end
-float
-follow
-for
-if
-int
-stop
-str
-switch
-while
- */
