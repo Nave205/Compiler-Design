@@ -1,0 +1,12 @@
+MAIN {
+    
+    int ant = 5;
+    int ent = 4;
+    int int = 6;        // error since int is a reserved word //
+    int ont = 7;
+    int unt = 3;
+    int sum = ant + ent + int + ont + unt;
+
+    OUTPUT(sum);
+
+} end

@@ -1,0 +1,8 @@
+MAIN {
+
+	INT num = 420;
+	FLOAT deci, deci2, deci3;
+	STR word = "Word";
+	BOOL choice = TRUE;
+
+} END

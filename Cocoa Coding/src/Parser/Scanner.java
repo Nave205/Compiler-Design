@@ -21,7 +21,7 @@ public class Scanner {
 
     public static void main(String args[]) {
         try {
-            File file = new File("src\\Cocoa Test Files\\test1.txt");
+            File file = new File("src\\Cocoa Test Files\\test4.txt");
             BufferedReader br = new BufferedReader(new FileReader(file));
             String st;
             int lineNumber = 0;
@@ -63,13 +63,12 @@ public class Scanner {
             e.printStackTrace();
         }
     }
-
     public static ArrayList< String> scan(String code) {
         ArrayList< String> token = new ArrayList<>();
         c = 0;
         while (c < code.length()) {
             lexeme = code.charAt(c);
-            //System.out.println("c = " + c + ": " + lexeme);
+            //System.out.println("c = " + c + ": " + lexeme + " (state: " + state + ")"); //debugging mode
             switch (state) {
                 case 0:
                     if (lexeme == '{') {
@@ -684,6 +683,7 @@ public class Scanner {
                         pushback();
                         token.add(reservedWords.get("END"));
                     }
+                    break;
                 case 58:                    //FAL_
                     if (lexeme == 'S') {
                         state = 79;
@@ -743,7 +743,7 @@ public class Scanner {
                         state = 27;
                     } else {
                         pushback();
-                        token.add("INT");
+                        token.add(reservedWords.get("INT"));
                     }
                     break;
                 case 65:                    //MAI_
@@ -946,7 +946,7 @@ public class Scanner {
                     break;
                 case 87:                    //OUTP_
                     if (lexeme == 'U') {
-                        state = 102;
+                        state = 103;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -987,6 +987,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add("TRUE");
+                        identifiers.replace(id, getWord());
                     }
                     break;
                 case 92:                    //WHIL_
@@ -1014,6 +1015,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add("FALSE");
+                        identifiers.replace(id, getWord());
                     }
                     break;
                 case 95:                    //FLOAT_
@@ -1280,6 +1282,7 @@ public class Scanner {
     }
 
     public static void anIdentifier(ArrayList<String> token) {
+        //System.out.println("*AnIdentifier* c = " + c + ": " + lexeme + " ( method from state: " + state + ")");
         pushback();
         id = getWord();
         token.add("ID = " + id);
@@ -1296,8 +1299,8 @@ public class Scanner {
 
     public static void pushback() {  //return state to 0 and move back 1 space
         state = 0;
-        c--;
-        tokenEnd = c;
+        tokenEnd = --c;
     }
 }
+//if there is an error, usually missing break;
 //note: add seperate state for error ?

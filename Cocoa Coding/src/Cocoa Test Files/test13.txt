@@ -1,0 +1,18 @@
+MAIN{
+
+	INT test;
+	test = INPUT();
+	BOOL isEven;
+
+	IF(test % 2 == 0)
+	{
+		isEven = TRUE;
+	}
+	ELSEIF(test % 2 != 0)
+	{
+		isEven = FALSE;
+	}
+	ELSE
+		OUTPUT("Invalid input");
+
+} END

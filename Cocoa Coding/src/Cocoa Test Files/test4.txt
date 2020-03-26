@@ -1,0 +1,12 @@
+MAIN {
+
+	// this is a comment // 
+
+
+
+
+	
+OUTPUT("\t" #+ "Hello Cocoa" #+ "\n");	// output is: 	Hello Cocoa //
+OUTPUT("Hello again");		// output is: Hello again //	 
+// this is another comment //
+} END

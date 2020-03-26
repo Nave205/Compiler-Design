@@ -1,0 +1,23 @@
+MAIN{
+	INT x = 15;
+	INT y = 5;
+	INT z = 2;
+
+	INT sum, diff, prod, mod, sample;
+	FLOAT quo;
+	
+	sum = x + y;			
+diff = x - y;			
+prod = x * z;			
+quo = x / z;
+mod = y % z;		
+	sample =(x * y) + z^2;		
+
+	OUTPUT(sum #+ "\n");				// 20 //
+OUTPUT(diff #+ "\n");				// 10 //
+OUTPUT(prod #+ "\n");				// 30 //
+OUTPUT(quo #+ "\n");				// 7.5 //
+OUTPUT(mod #+ "\n");				// 1 //
+OUTPUT(sample);					// 79 //
+
+} END

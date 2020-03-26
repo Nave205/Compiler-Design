@@ -1,0 +1,10 @@
+MAIN{
+
+	INT num = 420;
+	STR word = "360";
+	FLOAT remainder;
+	
+	remainder = num % STR2NUM(word)
+	OUTPUT(remainder);			      // 60 //
+
+} END
