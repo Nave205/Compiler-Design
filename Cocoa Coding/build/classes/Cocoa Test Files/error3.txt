@@ -1,0 +1,11 @@
+MAIN {
+    
+    str name;
+    int age;
+    
+    name = INPUT(name);
+    age = INPUT(age);
+    
+    OUTPUT("My name is " #+ name #+ " and I am " #+ age #+ " years old.")
+
+}        // missing end //

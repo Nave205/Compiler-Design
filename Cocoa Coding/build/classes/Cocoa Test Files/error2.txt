@@ -1,0 +1,8 @@
+MAIN {
+
+    str string1 = "Hello";
+    str string2 = "Cocoa"            // missing terminator //
+
+    OUTPUT(string1 #+ " " #+ string2);
+
+} end

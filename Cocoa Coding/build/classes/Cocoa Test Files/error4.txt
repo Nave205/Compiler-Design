@@ -1,0 +1,12 @@
+MAIN {
+
+    float x = 4.20;
+    int y = 69;
+    int sum = x + y;    
+    float sum2 = x + y;
+    
+    OUTPUT(sum #+ "\n");        // 73 //
+    OUTPUT(sum2);            // 73.20 
+
+} end                    // missing "ending" comment tag //
+

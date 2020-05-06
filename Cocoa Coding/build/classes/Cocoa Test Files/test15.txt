@@ -1,0 +1,11 @@
+MAIN{
+
+	INT num = 420;
+	STR word = "360";
+	FLOAT remainder;
+	
+	x = STR2NUM(word);
+        remainder = ARITH(num  % x)
+	OUTPUT(remainder);			      // 60 //
+
+} END

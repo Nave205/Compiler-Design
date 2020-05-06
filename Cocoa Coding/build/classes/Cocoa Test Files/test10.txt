@@ -1,0 +1,12 @@
+MAIN{
+	INT load;
+        OUTPUT("Loading. . .");
+	FOR(INT load = 0; LOGIC(load <= 100) ; load++);)
+	{
+		IF (LOGIC(load != 50)){
+			FOLLOW;
+		}
+		OUTPUT("Currently at 50 %!");
+	}
+	OUTPUT("Loading complete");
+} END

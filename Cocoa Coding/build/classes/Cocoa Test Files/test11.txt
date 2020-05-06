@@ -1,0 +1,20 @@
+MAIN{
+
+	INT grade;
+	grade = INPUT();
+
+SWITCH (grade) {
+CASE ( 1 ):
+	OUTPUT("Amazing");
+	STOP;
+CASE ( 2 ):
+	OUTPUT("Very good");
+	STOP;
+CASE ( 3 ):
+	OUTPUT("Passed");
+	STOP;
+DEF:
+	OUTPUT("Try Again next time");
+	STOP;
+}
+} END

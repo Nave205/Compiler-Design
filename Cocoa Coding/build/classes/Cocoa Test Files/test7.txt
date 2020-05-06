@@ -1,0 +1,24 @@
+MAIN{
+
+    float grade;
+    grade = STR2FLT(INPUT());
+    
+    IF (LOGIC(grade >= 1.0 AND  grade <= 1.75))
+    {
+        OUTPUT("Very Good!");
+    }
+    ELSEIF(LOGIC(grade > 1.75 AND grade <= 3.0))
+    {
+        OUTPUT("Passed");
+    }
+    ELSEIF (LOGIC(grade == 5.0))
+    {
+        OUTPUT("Failed");
+    }
+    ELSE 
+    {
+        OUTPUT("Invalid Input");
+    }
+
+} END
+

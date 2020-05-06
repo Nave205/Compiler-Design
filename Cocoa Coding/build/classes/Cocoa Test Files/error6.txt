@@ -1,0 +1,9 @@
+
+main {                    // should be "MAIN" //
+    int test = 100;
+    str test2 = "One Hundred";
+
+    Output(test #+ " = " #+ TEST2);    // should be “OUTPUT”, should be “test2” //
+
+} END        // should be "end" //
+
