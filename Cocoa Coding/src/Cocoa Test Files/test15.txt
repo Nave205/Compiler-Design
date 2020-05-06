@@ -4,7 +4,8 @@ MAIN{
 	STR word = "360";
 	FLOAT remainder;
 	
-	remainder = num % STR2NUM(word)
+	x = STR2NUM(word);
+        remainder = ARITH(num  % x)
 	OUTPUT(remainder);			      // 60 //
 
 } END

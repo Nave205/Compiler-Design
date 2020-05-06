@@ -9,6 +9,7 @@ public class ReservedWords {
         reservedWords.put("CASE", "CASE");
         reservedWords.put("DEF", "DEF");
         reservedWords.put("ELSE", "ELSE");
+        reservedWords.put("ELSEIF", "ELSEIF");
         reservedWords.put("END", "FINISH");
         reservedWords.put("FLOAT", "FLOAT");
         reservedWords.put("FLT2STR", "CONVERT");
@@ -28,6 +29,9 @@ public class ReservedWords {
         reservedWords.put("STR2INT", "CONVERT");
         reservedWords.put("SWITCH", "SWITCH");
         reservedWords.put("WHILE", "WHILE");
+        //2 new RS
+        reservedWords.put("ARITH", "ARITH");
+        reservedWords.put("LOGIC", "LOGIC");
         return reservedWords;
     }
 }

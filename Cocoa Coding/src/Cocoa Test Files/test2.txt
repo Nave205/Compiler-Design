@@ -3,9 +3,9 @@ MAIN {
 	STR sample = "Hello Cocoa";
 	INT x;
 
-x = INPUT();			// INPUT() will prompt user for value //
+        INPUT(x);			// INPUT() will prompt user for value //
 
-OUTPUT(sample);		// will print out Hello Cocoa //
+        OUTPUT(sample);		// will print out Hello Cocoa //
 	OUTPUT(x);			// will print whatever value is inputted in x //
 
 } END

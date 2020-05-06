@@ -18,10 +18,16 @@ public class Scanner {
     public static String code;
 
     public static String id, stringlit, intlit, floatlit;
-
+    
     public static void main(String args[]) {
+        String path = "src\\Cocoa Test Files\\test15.txt";
+        read(path);
+    }
+    
+    public static ArrayList<String> read(String path) {
+        ArrayList<String> output = new ArrayList<String>();
         try {
-            File file = new File("src\\Cocoa Test Files\\test4.txt");
+            File file = new File(path);
             BufferedReader br = new BufferedReader(new FileReader(file));
             String st;
             int lineNumber = 0;
@@ -31,7 +37,8 @@ public class Scanner {
             System.out.println("===============================================");
             while ((st = br.readLine()) != null) {
                 code = st + " ";            //per line
-                ArrayList< String> tokens = scan(code);
+                ArrayList<String> tokens = scan(code);
+                output.addAll(tokens);
                 lineNumber++;
                 for (int x = 0; x < tokens.size(); x++) {
                     System.out.print("[" + tokens.get(x) + "] ");
@@ -62,9 +69,10 @@ public class Scanner {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return output;
     }
-    public static ArrayList< String> scan(String code) {
-        ArrayList< String> token = new ArrayList<>();
+    public static ArrayList<String> scan(String code) {
+        ArrayList<String> token = new ArrayList<>();
         c = 0;
         while (c < code.length()) {
             lexeme = code.charAt(c);
@@ -168,6 +176,9 @@ public class Scanner {
                             case 'I':
                                 state = 19;
                                 break;
+                            case 'L':
+                                state = 123;
+                                break;
                             case 'M':
                                 state = 20;
                                 break;
@@ -231,15 +242,19 @@ public class Scanner {
                     break;
                 case 5:                     //guaranteed <=
                     token.add("RELOP");
+                    state = 0;
                     break;
                 case 6:
                     token.add("RELOP");     //guaranteed ==
+                    state = 0;
                     break;
                 case 7:
                     token.add("RELOP");     //guaranteed != 
+                    state = 0;
                     break;
                 case 8:
                     token.add("RELOP");     //guaranteed >=
+                    state = 0;
                     break;
                 case 9:                     //guaranteed //
                     state = 28;
@@ -271,6 +286,9 @@ public class Scanner {
                 case 13:                    //A_
                     if (lexeme == 'N') {
                         state = 30;
+                    }
+                    else if (lexeme == 'R') {
+                        state = 124;    
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -331,8 +349,7 @@ public class Scanner {
                 case 19:                    //I_
                     if (lexeme == 'F') {
                         state = 39;
-                    }
-                    if (lexeme == 'N') {
+                    } else if (lexeme == 'N') {
                         state = 40;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
@@ -946,7 +963,7 @@ public class Scanner {
                     break;
                 case 87:                    //OUTP_
                     if (lexeme == 'U') {
-                        state = 103;
+                        state = 102;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -1072,7 +1089,7 @@ public class Scanner {
                     break;
                 case 101:                    //INT2S_
                     if (lexeme == 'T') {
-                        state = 111;
+                        state = 112;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -1081,7 +1098,7 @@ public class Scanner {
                     break;
                 case 102:                    //OUTPU_
                     if (lexeme == 'T') {
-                        state = 112;
+                        state = 113;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -1089,8 +1106,8 @@ public class Scanner {
                     }
                     break;
                 case 103:                    //STR2F_
-                    if (lexeme == 'T') {
-                        state = 113;
+                    if (lexeme == 'L') {
+                        state = 114;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -1099,7 +1116,7 @@ public class Scanner {
                     break;
                 case 104:                    //STR2I_
                     if (lexeme == 'N') {
-                        state = 114;
+                        state = 115;
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -1257,6 +1274,87 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("STR2INT"));
+                    }
+                    break;
+                case 123:                    //L_
+                    if (lexeme == 'O') {
+                        state = 125;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                // new
+                case 124:                    //AR_
+                    if (lexeme == 'I') {
+                        state = 126;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 125:                    //LO_
+                    if (lexeme == 'G') {
+                        state = 127;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 126:                    //ARI_
+                    if (lexeme == 'T') {
+                        state = 128;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 127:                    //LOG_
+                    if (lexeme == 'I') {
+                        state = 129;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 128:                    //ARIT_
+                    if (lexeme == 'H') {
+                        state = 130;
+                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 129:                    //LOGI_
+                    if (lexeme == 'C') {
+                        state = 131;
+                    }
+                    else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        anIdentifier(token);
+                    }
+                    break;
+                case 130:                    //ARITH_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("ARITH"));
+                    }
+                    break;
+                case 131:                    //LOGIC_
+                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
+                        state = 27;
+                    } else {
+                        pushback();
+                        token.add(reservedWords.get("LOGIC"));
                     }
                     break;
                 default:

@@ -4,11 +4,11 @@ MAIN{
 	test = INPUT();
 	BOOL isEven;
 
-	IF(test % 2 == 0)
+	IF(LOGIC(test % 2 == 0))
 	{
 		isEven = TRUE;
 	}
-	ELSEIF(test % 2 != 0)
+	ELSEIF(LOGIC(test % 2 != 0))
 	{
 		isEven = FALSE;
 	}
