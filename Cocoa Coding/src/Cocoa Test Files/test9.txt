@@ -2,7 +2,7 @@ MAIN{
 
 	INT charge = 1;
 
-	WHILE (LOGIC(charge != 100))
+	WHILE (charge != 100)
 	{
 		OUTPUT("Phone is at " #+ charge #+ " %" #+ "\n");
 		charge++; 

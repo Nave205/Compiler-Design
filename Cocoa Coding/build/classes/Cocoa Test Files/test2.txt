@@ -3,7 +3,7 @@ MAIN {
 	STR sample = "Hello Cocoa";
 	INT x;
 
-        INPUT(x);			// INPUT() will prompt user for value //
+        x = INPUT("Enter a value: ");			// INPUT() will prompt user for value //
 
         OUTPUT(sample);		// will print out Hello Cocoa //
 	OUTPUT(x);			// will print whatever value is inputted in x //

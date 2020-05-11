@@ -6,12 +6,12 @@ MAIN{
 	INT sum, diff, prod, mod, sample;
 	FLOAT quo;
 	
-	sum = ARITH(x + y);			
-        diff = ARITH(x - y);			
-        prod = ARITH(x * z);			
-        quo = ARITH(x / z);
-        mod = ARITH(y % z);		
-	sample = ARITH((x * y) + z^2);		
+	sum = x + y;			
+        diff = x - y;			
+        prod = x * z;			
+        quo = x / z;
+        mod = y % z;		
+	sample = (x * y) + z^2;		
 
 	OUTPUT(sum #+ "\n");				// 20 //
         OUTPUT(diff #+ "\n");				// 10 //

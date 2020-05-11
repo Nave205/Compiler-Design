@@ -1,7 +1,7 @@
 MAIN {
 
 	INT num = 420;
-	FLOAT deci, deci2, deci3;
+	FLOAT deci1,deci2,deci3;
 	STR word = "Word";
 	BOOL choice = TRUE;
 

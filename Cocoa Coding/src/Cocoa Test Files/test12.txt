@@ -1,11 +1,12 @@
 MAIN{
 	INT multiples = 6;
 	
-	FOR (int i = 0; i <= 50; i++){
-IF (i % multiples != 0)
-{
-	FOLLOW;
-}
-	OUTPUT(i #+ “\n”);		// 6 12 18 24… 48
-}
-	} END
+	FOR(INT i = 0; i <= 50; i++){
+            multiples = multiples % 6;
+            IF (multiples != 0)
+            {
+                FOLLOW;
+            }
+            OUTPUT(i #+ "\n");		// 6 12 18 24… 48
+        }
+} END

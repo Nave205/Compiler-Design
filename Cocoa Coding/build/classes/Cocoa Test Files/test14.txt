@@ -4,43 +4,43 @@ MAIN{
 	INT avg;
 	avg = INPUT();
 	
-	IF(LOGIC(avg == 100 OR avg == 99))
+	IF(avg == 100 OR avg == 99)
 	{
 		OUTPUT(" S ");
 	}
-	ELSEIF(LOGIC(avg <= 98 AND avg >= 90))
+	ELSEIF(avg <= 98 AND avg >= 90)
 	{
 		OUTPUT(" A ");
 	}
-	ELSEIF(LOGIC(avg <= 89 AND avg >= 85))
+	ELSEIF(avg <= 89 AND avg >= 85)
 	{
 		OUTPUT(" B+ ");
 	}
-	ELSEIF(LOGIC(avg < 85 AND avg > 60))
+	ELSEIF(avg < 85 AND avg > 60)
 	{
 		OUTPUT(" C ");
 	}
 	ELSE
 	{
-		IF(LOGIC(avg != 0 NOR avg < 0))
+		IF(avg != 0 NOR avg < 0)
 		{
 			OUTPUT("No Zero nor Negative Inputs");
-}
-ELSEIF(LOGIC(avg > 0 NAND avg <= 100))
-{
-		OUTPUT("Range is 1 to 100 only");
-}
-ELSEIF(LOGIC(avg < 55 XOR avg < 60))
-{
-		OUTPUT("You almost Passed, F");
-}
-ELSE
-{ 
-	IF(LOGIC(NOT(avg > 100 OR avg < 1)))
-	{
-		OUTPUT("F");
-	}
-}
+                }
+                ELSEIF(avg > 0 NAND avg <= 100)
+                {
+                                OUTPUT("Range is 1 to 100 only");
+                }
+                ELSEIF(avg < 55 XOR avg < 60)
+                {
+                                OUTPUT("You almost Passed, F");
+                }
+                ELSE
+                { 
+                        IF(NOT(avg > 100 OR avg < 1))
+                        {
+                                OUTPUT("F");
+                        }
+                }
 	}
 	
 } END
