@@ -1,0 +1,6 @@
+MAIN{
+
+    INT $num = 600;                 // Identifiers can only be Alpha-numeric//
+    STR 1word = 'Six hundred';      // Identifiers must start with alphabet //
+
+}END

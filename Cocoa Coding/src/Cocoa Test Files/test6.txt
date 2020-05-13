@@ -3,5 +3,5 @@ MAIN{
 	STR first = "Hello";
 	STR second = "Cocoa";
 
-	OUTPUT(first #+ " " #+ second);		// Hello Cocoa
+	OUTPUT(first #+ " " #+ second);		// Hello Cocoa //
 }END

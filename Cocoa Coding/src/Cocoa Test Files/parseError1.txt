@@ -1,0 +1,5 @@
+MAIN{
+
+    FLOAT INT = 3.0;            // Using of Tokens as variable Names //
+
+}END

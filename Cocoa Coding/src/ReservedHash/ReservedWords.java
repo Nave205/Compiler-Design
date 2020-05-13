@@ -29,9 +29,6 @@ public class ReservedWords {
         reservedWords.put("STR2INT", "CONVERT");
         reservedWords.put("SWITCH", "SWITCH");
         reservedWords.put("WHILE", "WHILE");
-        //2 new RS
-        reservedWords.put("ARITH", "ARITH");
-        reservedWords.put("LOGIC", "LOGIC");
         return reservedWords;
     }
 }

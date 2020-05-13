@@ -9,10 +9,12 @@ public class Scanner {
 
     public static int state = 0,
             c = 0, tokenStart = 0, tokenEnd = 0,
-            point = 0, errorCount = 0;
+            point = 0, errorCount = 0, dtokenCount = 0,
+            dkey = 0;
     public static final ReservedWords rwTable = new ReservedWords();
     public static HashMap<String, String> reservedWords = rwTable.predefineReserves();
     public static HashMap<String, String> identifiers = new HashMap<>();
+    public static HashMap<String, String> duplicateTokens = new HashMap<>();
     ArrayList<String> error = new ArrayList<>();//Creating arraylist    
     public static char lexeme;
     public static String code;
@@ -20,8 +22,9 @@ public class Scanner {
     public static String id, stringlit, intlit, floatlit;
     
     public static void main(String args[]) {
-        String path = "src\\Cocoa Test Files\\test15.txt";
-        read(path);
+        String path = "src\\Cocoa Test Files\\test8.txt";
+        ArrayList<String> output = new ArrayList<>();
+        output = read(path);
     }
     
     public static ArrayList<String> read(String path) {
@@ -54,17 +57,74 @@ public class Scanner {
             System.out.println("===============================================");
             System.out.println("\nErrors found:" + errorCount);
             System.out.println("===============================================");
-            System.out.println("\nIdentifiers Table:");
-            for (String key : identifiers.keySet()) {
-                System.out.println("VarName: " + key + "\tvalue: " + identifiers.get(key));
-            }
-
+            
             if (errorCount > 0) {
                 for (int x = 0; x < counter; x++) {
                     System.out.println(error[x]);
                 }
             }
+            /*
+            System.out.println("\nIdentifiers Table:");
+            for (String key : identifiers.keySet()) {
+                System.out.println("VarName: " + key + "\tvalue: " + identifiers.get(key));
+            }
+            */
             br.close();
+            
+            int y=1;
+            for (int x = 0; x < output.size(); x++) {
+                if (isIdentifier(output.get(x)))
+                {
+                    if(output.get(x+1).equals("ASSIGN"))
+                    {
+                        String name = nameIdentifier(output.get(x));
+                        String arith="";
+                        x += 2;
+                        while(!(output.get(x).equals("SCLON")))
+                        {
+                            switch(getBase(output.get(x))) {
+                                case "INTLIT":
+                                case "FLOATLIT":
+                                case "STRINGLIT":
+                                case "ID":
+                                    arith += assignValue(output.get(x)) + " ";
+                                    break;
+                                case "LPAREN":
+                                    arith += "( ";
+                                    break;
+                                case "RPAREN":
+                                    arith += ") ";
+                                    break;
+                                case "EXPON":
+                                    arith += "^ ";
+                                    break;
+                                case "ADDSUB":
+                                case "MULDIV":
+                                case "CONVERT":
+                                case "RELOP":
+                                    arith += duplicateTokens.get(Integer.toString(y)) + " ";
+                                    y++;
+                                    break;
+                                default:
+                                    arith += output.get(x) + " ";
+                                    break;
+                            }
+                            x++;
+                        }
+                        identifiers.replace(name, arith);
+                    }
+                }
+            }
+            
+            System.out.println("\nDuplicate Token Table:");
+            for (String key : duplicateTokens.keySet()) {
+                System.out.println(key + ".\t\tvalue: " + duplicateTokens.get(key));
+            }
+
+            System.out.println("\nIdentifiers Table:");
+            for (String key : identifiers.keySet()) {
+                System.out.println("VarName: " + key + "\t\tvalue: " + identifiers.get(key));
+            }
             //necessary for error handling
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,11 +155,13 @@ public class Scanner {
                         }
                     } else if (lexeme == '*') {
                         token.add("MULDIV");
+                        duplicateTokens.put(Integer.toString(++dkey), "*");
                     } else if (lexeme == '+') {
                         if (nextChar('+')) {
                             state = 2;
                         } else {
                             token.add("ADDSUB");
+                            duplicateTokens.put(Integer.toString(++dkey), "+");
                         }
                     } else if (lexeme == ',') {
                         token.add("COMMA");
@@ -110,6 +172,7 @@ public class Scanner {
                         token.add("EXPON");
                     } else if (lexeme == '%') {
                         token.add("MULDIV");
+                        duplicateTokens.put(Integer.toString(++dkey), "%");
                     } else if (lexeme == ':') {
                         token.add("COLON");
                     } else if (lexeme == ';') {
@@ -119,6 +182,7 @@ public class Scanner {
                             state = 5;
                         } else {
                             token.add("RELOP");
+                            duplicateTokens.put(Integer.toString(++dkey), "<");
                         }
                     } else if (lexeme == '=') {
                         if (nextChar('=')) {
@@ -137,12 +201,14 @@ public class Scanner {
                             state = 8;
                         } else {
                             token.add("RELOP");
+                            duplicateTokens.put(Integer.toString(++dkey), ">");
                         }
                     } else if (lexeme == '/') {
                         if (nextChar('/')) {
                             state = 9;
                         } else {
                             token.add("MULDIV");
+                            duplicateTokens.put(Integer.toString(++dkey), "/");
                         }
                     } else if (lexeme == '"') {
                         state = 10;
@@ -175,9 +241,6 @@ public class Scanner {
                                 break;
                             case 'I':
                                 state = 19;
-                                break;
-                            case 'L':
-                                state = 123;
                                 break;
                             case 'M':
                                 state = 20;
@@ -228,6 +291,7 @@ public class Scanner {
                         state = 4;
                     } else {
                         token.add("ADDSUB");
+                        duplicateTokens.put(Integer.toString(++dkey), "-");
                         pushback();
                     }
                     break;
@@ -242,18 +306,22 @@ public class Scanner {
                     break;
                 case 5:                     //guaranteed <=
                     token.add("RELOP");
+                    duplicateTokens.put(Integer.toString(++dkey), "<=");
                     state = 0;
                     break;
                 case 6:
                     token.add("RELOP");     //guaranteed ==
+                    duplicateTokens.put(Integer.toString(++dkey), "==");
                     state = 0;
                     break;
                 case 7:
                     token.add("RELOP");     //guaranteed != 
+                    duplicateTokens.put(Integer.toString(++dkey), "!=");
                     state = 0;
                     break;
                 case 8:
                     token.add("RELOP");     //guaranteed >=
+                    duplicateTokens.put(Integer.toString(++dkey), ">=");
                     state = 0;
                     break;
                 case 9:                     //guaranteed //
@@ -286,9 +354,6 @@ public class Scanner {
                 case 13:                    //A_
                     if (lexeme == 'N') {
                         state = 30;
-                    }
-                    else if (lexeme == 'R') {
-                        state = 124;    
                     } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
                         state = 27;
                     } else {
@@ -744,6 +809,7 @@ public class Scanner {
                         pushback();
                         token.add(reservedWords.get("FOR"));
                     }
+                    break;
                 case 63:                    //INP_
                     if (lexeme == 'U') {
                         state = 83;
@@ -1234,6 +1300,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("FLT2INT"));
+                        duplicateTokens.put(Integer.toString(++dkey), "FLT2INT");
                     }
                     break;
                 case 118:                    //FLT2STR_
@@ -1242,6 +1309,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("FLT2STR"));
+                        duplicateTokens.put(Integer.toString(++dkey), "FLT2STR");
                     }
                     break;
                 case 119:                    //INT2FLT_
@@ -1250,6 +1318,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("INT2FLT"));
+                        duplicateTokens.put(Integer.toString(++dkey), "INT2FLT");
                     }
                     break;
                 case 120:                    //INT2STR_
@@ -1258,6 +1327,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("INT2STR"));
+                        duplicateTokens.put(Integer.toString(++dkey), "INT2STR");
                     }
                     break;
                 case 121:                    //STR2FLT_
@@ -1266,6 +1336,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("STR2FLT"));
+                        duplicateTokens.put(Integer.toString(++dkey), "STR2FLT");
                     }
                     break;
                 case 122:                    //STR2INT_
@@ -1274,87 +1345,7 @@ public class Scanner {
                     } else {
                         pushback();
                         token.add(reservedWords.get("STR2INT"));
-                    }
-                    break;
-                case 123:                    //L_
-                    if (lexeme == 'O') {
-                        state = 125;
-                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                // new
-                case 124:                    //AR_
-                    if (lexeme == 'I') {
-                        state = 126;
-                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                case 125:                    //LO_
-                    if (lexeme == 'G') {
-                        state = 127;
-                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                case 126:                    //ARI_
-                    if (lexeme == 'T') {
-                        state = 128;
-                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                case 127:                    //LOG_
-                    if (lexeme == 'I') {
-                        state = 129;
-                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                case 128:                    //ARIT_
-                    if (lexeme == 'H') {
-                        state = 130;
-                    } else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                case 129:                    //LOGI_
-                    if (lexeme == 'C') {
-                        state = 131;
-                    }
-                    else if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        anIdentifier(token);
-                    }
-                    break;
-                case 130:                    //ARITH_
-                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        pushback();
-                        token.add(reservedWords.get("ARITH"));
-                    }
-                    break;
-                case 131:                    //LOGIC_
-                    if (Character.isLetter(lexeme) || Character.isDigit(lexeme)) {
-                        state = 27;
-                    } else {
-                        pushback();
-                        token.add(reservedWords.get("LOGIC"));
+                        duplicateTokens.put(Integer.toString(++dkey), "STR2INT");
                     }
                     break;
                 default:
@@ -1379,6 +1370,38 @@ public class Scanner {
         }
     }
 
+    public static boolean isIdentifier(String token) {
+        if(token.charAt(0) == 'I')
+        {
+            if(token.charAt(1) == 'D')
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public static String nameIdentifier(String token) {
+        String substr = token.substring(5, token.length());
+        return substr;
+    }
+    
+    public static String assignValue(String token) {
+        int x = 0;
+        String substr="";
+        for (int i = 0; i < token.length(); i++)
+        {
+            if (x == 2)
+            {
+                substr = token.substring(i, token.length());
+                break;
+            }
+            if (token.charAt(i) == ' ')
+                x++;
+        }
+        return substr;
+    }
+    
     public static void anIdentifier(ArrayList<String> token) {
         //System.out.println("*AnIdentifier* c = " + c + ": " + lexeme + " ( method from state: " + state + ")");
         pushback();
@@ -1394,10 +1417,21 @@ public class Scanner {
         }
         return substring;
     }
-
+    
     public static void pushback() {  //return state to 0 and move back 1 space
         state = 0;
         tokenEnd = --c;
+    }
+    
+    public static String getBase(String token){
+        String baseWord = "";
+        for (int i = 0; i < token.length(); i++)
+        {
+            if (token.charAt(i) == ' ')
+                break;
+            baseWord += (token.charAt(i));
+        }
+        return baseWord;
     }
 }
 //if there is an error, usually missing break;

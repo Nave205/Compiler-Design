@@ -7,135 +7,199 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class Parser {
 
+public class Parser {
     public static String tree = "";
     public static int x = 0;
+    public static int alter = 0;
     public static int close = 0;
-    public static ArrayList<String> tokens = read("src\\Cocoa Test Files\\test15.txt");
+    //public static ArrayList<String> tokens = read("src\\Cocoa Test Files\\parseErrorHandled2.txt");
     public static String nameofCurrMethod;
-    //public static ArrayList<String> tokens = read("C:\\Users\\User\\Desktop\\parseTest.txt");
-
+    public static ArrayList<String> tokens = read("C:\\Users\\User\\Desktop\\parseTest.txt");
+    
     public static void main(String args[]) {
-        String path = "src\\Cocoa Test Files\\test1.txt";
+        String path = "src\\Cocoa Test Files\\test5.txt";
         parse();
         //String output = parse(read(path));
     }
-
+    
     public static String parse() {
-
+       
         System.out.println();
         System.out.println("==================Parse Part==================");
         System.out.println();
-
+        
         tokens.add("$");
+        System.out.println("Row of tokens: ");
         PrintArrayList(tokens);
+        System.out.println();
         Prgm();
+        
+        System.out.println("Tree Syntax: ");
         System.out.println(tree);
+        System.out.println();
+        
+        System.out.println("Final row of tokens: ");
+        PrintArrayList(tokens);
+        
         writeFile(tree);
-
-        NPLviewer makeTree = new NPLviewer("treetest.txt");
-
+        NPLviewer makeTree = new NPLviewer("src\\Cocoa Test Files\\generatedTree.txt");
+        
         return tree;
     }
-
-    public static String parse(ArrayList<String> code) {
+    
+    public static String parse(ArrayList <String> code) {
         tokens.add("$");
         PrintArrayList(tokens);
         Prgm();
         return tree;
     }
-
-    public static void PrintArrayList(ArrayList<String> content) {
+    
+    public static void PrintArrayList(ArrayList<String> content){
         for (int x = 0; x < content.size(); x++) {
             System.out.print("[" + content.get(x) + "] ");
         }
         System.out.println();
     }
-
     public static void Prgm() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
+        tree += "[" + nameofCurrMethod + " # ";
         Start();
         tree += "]";
     }
-
     public static void Start() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[[";
-        tree += nameofCurrMethod + " # ";
-        tree += "[";
-        Match("START");
-        tree += ",";
-        StmntBlk();
-        tree += ",";
-        Match("FINISH");
-        tree += "]";
-        tree += "]]";
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){ 
+            case "START": 
+                tree += "[";
+                Match("START");
+                tree += ",";
+                StmntBlk();
+                tree += ",";
+                Match("FINISH");
+                tree += "]";
+                break;
+            default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 5);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LCURLY": 
+                        tokens.add(x, "START");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Start();
+                //Error();
+                break;
+        }
+        if (alter == 0)
+            tree += "]]";
+        else
+            alter--;
     }
-
     public static void StmntBlk() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        tree += "[";
-        Match("LCURLY");
-        tree += ",";
-        Stmnts();
-        tree += ",";
-        Match("RCURLY");
-        tree += "]";
-        tree += "]";
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){ 
+            case "LCURLY": 
+                tree += "[";
+                Match("LCURLY");
+                tree += ",";
+                Stmnts();
+                tree += ",";
+                Match("RCURLY");
+                tree += "]";
+                break;
+            default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "LCURLY");
+                System.out.println();
+                StmntBlk();
+                break;
+        }
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void Stmnts() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "BOOL":
-            case "DECREMENT":
-            case "FLOAT":
-            case "FOR":
-            case "ID":
-            case "IF":
-            case "INCREMENT":
-            case "INTEGER":
-            case "LCURLY":
-            case "OUTPUT":
-            case "STRING":
-            case "SWITCH":
-            case "WHILE":
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){ 
+            case "BOOL": 
+            case "DECREMENT": 
+            case "FLOAT": 
+            case "FOR": 
+            case "ID": 
+            case "IF": 
+            case "INCREMENT": 
+            case "INTEGER": 
+            case "LCURLY": 
+            case "OUTPUT": 
+            case "STRING": 
+            case "SWITCH": 
+            case "WHILE": 
                 tree += "[";
                 Stmnt();
                 tree += ",";
                 Stmnts();
                 tree += "]";
                 break;
-            case "CASE":
-            case "DEF":
-            case "STOP":
+            case "CASE": 
+            case "DEF": 
+            case "STOP": 
             case "RCURLY":
-            case "$":
+            case "$":     
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "(": 
+                        tokens.add(x, "CASE");
+                        break;
+                    case ":": 
+                        tokens.add(x, "DEF");
+                        break;
+                    case ";": 
+                        tokens.add(x, "STOP");
+                        break;
+                    case "FINISH":
+                        tokens.add(x, "RCURLY");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Stmnts();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void Stmnt() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTEGER":
-            case "STRING":
-            case "FLOAT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){ 
+            case "INTEGER": 
+            case "STRING": 
+            case "FLOAT": 
             case "BOOL":
             case "ID":
                 tree += "[";
@@ -149,23 +213,23 @@ public class Parser {
                 CondIf();
                 tree += "]";
                 break;
-            case "FOR":
+            case "FOR": 
             case "WHILE":
                 tree += "[";
                 Loop();
                 tree += "]";
                 break;
-            case "LCURLY":
+            case "LCURLY": 
                 tree += "[";
                 StmntBlk();
                 tree += "]";
-                break;
-            case "SWITCH":
+                break;    
+            case "SWITCH": 
                 tree += "[";
                 Switch();
                 tree += "]";
                 break;
-            case "OUTPUT":
+            case "OUTPUT": 
                 tree += "[";
                 Out();
                 tree += ",";
@@ -173,7 +237,6 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                System.out.println("Stmnt");
                 Error();
                 break;
         }
@@ -181,11 +244,10 @@ public class Parser {
     }
 
     public static void LitExp() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTLIT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTLIT": 
             case "FLOATLIT":
                 tree += "[";
                 NumLit();
@@ -197,27 +259,40 @@ public class Parser {
                 tree += "]";
                 break;
             case "TRUE":
-            case "FALSE":
+            case "FALSE":  
                 tree += "[";
                 BoolConst();
                 tree += "]";
                 break;
             default:
-                System.out.println("LitExp");
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "RPAREN": 
+                        tokens.add(x, "STRINGLIT");
+                    default:
+                        Error();
+                        break;
+                }
+                LitExp();
                 break;
+                //Error();
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void Decln() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTEGER":
-            case "STRING":
-            case "FLOAT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTEGER": 
+            case "STRING": 
+            case "FLOAT": 
             case "BOOL":
                 tree += "[";
                 Dtype();
@@ -231,18 +306,15 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-
                 Error();
-                break;
+                break;  
         }
         tree += "]";
     }
-
     public static void Dtype() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "INTEGER":
                 tree += "[";
                 Match("INTEGER");
@@ -253,29 +325,27 @@ public class Parser {
                 Match("STRING");
                 tree += "]";
                 break;
-            case "FLOAT":
+            case "FLOAT": 
                 tree += "[";
                 Match("FLOAT");
                 tree += "]";
                 break;
-            case "BOOL":
+            case "BOOL": 
                 tree += "[";
                 Match("BOOL");
                 tree += "]";
                 break;
             default:
-
                 Error();
                 break;
         }
         tree += "]";
     }
-
+    
     public static void Assign() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "ID":
                 tree += "[";
                 Match("ID");
@@ -284,150 +354,192 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-
-                Error();
-                break;
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "=": 
+                        tokens.add(x, "ID");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Assign();
+                //Error();
+                break; 
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void AssignPrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INCREMENT":
-            case "DECREMENT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INCREMENT": 
+            case "DECREMENT": 
                 tree += "[";
                 UpDown();
                 tree += "]";
                 break;
-            case "ASSIGN":
+            case "ASSIGN": 
                 tree += "[";
                 Match("ASSIGN");
                 tree += ",";
                 AssignPrimePrime();
                 tree += "]";
                 break;
-            case "COMMA":
+            case "COMMA": 
                 tree += "[";
                 Match("COMMA");
                 tree += ",";
                 Assign();
                 tree += "]";
                 break;
-            case "SCLON":
+            case "SCLON": 
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing ,/= or ; in Assignment");
                 Error();
                 break;
         }
         tree += "]";
     }
-
+    
     public static void AssignPrimePrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "LPAREN":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "LPAREN": 
             case "INTLIT":
-            case "FLOATLIT":
-            case "ID":
+            case "FLOATLIT": 
+            case "ID": 
             case "CONVERT":
                 tree += "[";
                 Arith();
                 tree += "]";
                 break;
-            case "INPUT":
+            case "INPUT": 
                 tree += "[";
                 In();
                 tree += "]";
                 break;
-            case "TRUE":
-            case "FALSE":
+            case "TRUE": 
+            case "FALSE": 
                 tree += "[";
                 BoolConst();
                 tree += "]";
                 break;
-            case "STRINGLIT":
+            case "STRINGLIT": 
                 tree += "[";
                 Match("STRINGLIT");
                 tree += "]";
                 break;
-            case "INCREMENT":
-            case "DECREMENT":
+            case "INCREMENT": 
+            case "DECREMENT": 
                 tree += "[";
                 UpDown();
                 tree += "]";
                 break;
             default:
-
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case ";": 
+                        tokens.add(x, "STRINGLIT");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                AssignPrimePrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void NumLit() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTLIT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTLIT": 
                 tree += "[";
                 Match("INTLIT");
                 tree += "]";
                 break;
-            case "FLOATLIT":
+            case "FLOATLIT": 
                 tree += "[";
                 Match("FLOATLIT");
                 tree += "]";
                 break;
             default:
-
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "FLOATLIT");
+                NumLit();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void BoolConst() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "TRUE":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "TRUE": 
                 tree += "[";
                 Match("TRUE");
                 tree += "]";
                 break;
-            case "FALSE":
+            case "FALSE": 
                 tree += "[";
                 Match("FALSE");
                 tree += "]";
                 break;
             default:
-
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "TRUE");
+                BoolConst();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void LogicExp() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "NOT":
-            case "LPAREN":
-            case "TRUE":
-            case "FALSE":
-            case "ID":
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "NOT": 
+            case "LPAREN": 
+            case "TRUE": 
+            case "FALSE": 
+            case "ID": 
                 tree += "[";
                 Conj();
                 tree += ",";
@@ -435,20 +547,23 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Logical Expression");
                 Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void LogicExpPrime() {
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        switch (getBase(tokens.get(x))) {
-            case "OR":
-            case "NOR":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "OR": 
+            case "NOR": 
                 tree += "[";
                 OrOp();
                 tree += ",";
@@ -463,22 +578,39 @@ public class Parser {
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "SCLON": 
+                        tokens.add(x, "ID");
+                        break;
+                    case "RPAREN": 
+                        tokens.add(x, "LCURLY");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                LogicExpPrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void Conj() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "NOT":
-            case "LPAREN":
-            case "TRUE":
-            case "FALSE":
-            case "ID":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "NOT": 
+            case "LPAREN": 
+            case "TRUE": 
+            case "FALSE": 
+            case "ID": 
                 tree += "[";
                 Disj();
                 tree += ",";
@@ -486,18 +618,19 @@ public class Parser {
                 tree += "]";
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Logical Expression");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void ConjPrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "XOR":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "XOR": 
                 tree += "[";
                 XorOp();
                 tree += ",";
@@ -508,28 +641,45 @@ public class Parser {
                 break;
             case "RPAREN":
             case "SCLON":
-            case "OR":
-            case "NOR":
+            case "OR": 
+            case "NOR":     
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "SCLON": 
+                        tokens.add(x, "ID");
+                        break;
+                    case "RPAREN": 
+                        tokens.add(x, "LCURLY");
+                        break;  
+                    default:
+                        tokens.add(x, "OR");
+                        break;
+                }
+                ConjPrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void Disj() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "NOT":
-            case "LPAREN":
-            case "TRUE":
-            case "FALSE":
-            case "ID":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "NOT": 
+            case "LPAREN": 
+            case "TRUE": 
+            case "FALSE": 
+            case "ID": 
                 tree += "[";
                 ExOr();
                 tree += ",";
@@ -537,19 +687,20 @@ public class Parser {
                 tree += "]";
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Logical Expression");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void DisjPrime() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "AND":
-            case "NAND":
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "AND": 
+            case "NAND": 
                 tree += "[";
                 AndOp();
                 tree += ",";
@@ -559,51 +710,69 @@ public class Parser {
             case "XOR":
             case "RPAREN":
             case "SCLON":
-            case "OR":
-            case "NOR":
+            case "OR": 
+            case "NOR":     
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "SCLON": 
+                        tokens.add(x, "ID");
+                        break;
+                    case "RPAREN": 
+                        tokens.add(x, "LCURLY");
+                        break;  
+                    default:
+                        tokens.add(x, "OR");
+                        break;
+                }
+                DisjPrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void ExOr() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "NOT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "NOT": 
                 tree += "[";
                 NotOp();
                 tree += ",";
                 LogBase();
                 tree += "]";
                 break;
-            case "LPAREN":
-            case "TRUE":
-            case "FALSE":
-            case "ID":
+            case "LPAREN": 
+            case "TRUE": 
+            case "FALSE": 
+            case "ID": 
                 tree += "[";
                 LogBase();
                 tree += "]";
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Logical Expression");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void LogBase() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "LPAREN":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "LPAREN": 
                 tree += "[";
                 Match("LPAREN");
                 tree += ",";
@@ -612,30 +781,47 @@ public class Parser {
                 Match("RPAREN");
                 tree += "]";
                 break;
-            case "TRUE":
-            case "FALSE":
+            case "TRUE": 
+            case "FALSE": 
                 tree += "[";
                 BoolConst();
                 tree += "]";
                 break;
-            case "ID":
+            case "ID": 
                 tree += "[";
                 RelExp();
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "TRUE": 
+                    case "FALSE": 
+                    case "ID":
+                    case "NOT":    
+                        tokens.add(x, "LPAREN");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                LogBase();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void RelExp() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "ID":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "ID": 
                 tree += "[";
                 Match("ID");
                 tree += ",";
@@ -645,101 +831,141 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "RELOP":
+                        tokens.add(x, "ID");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                RelExp();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void OrOp() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "OR":
-                tree += "[";
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "OR": 
                 Match("OR");
-                tree += "]";
                 break;
-            case "NOR":
-                tree += "[";
+            case "NOR": 
                 Match("NOR");
-                tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "OR");
+                OrOp();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void XorOp() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "XOR":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "XOR": 
                 tree += "[";
                 Match("XOR");
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "XOR");
+                XorOp();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void AndOp() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "AND":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "AND": 
                 tree += "[";
                 Match("AND");
                 tree += "]";
                 break;
-            case "NAND":
+            case "NAND": 
                 tree += "[";
                 Match("NAND");
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "AND");
+                AndOp();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void NotOp() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "NOT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "NOT": 
                 tree += "[";
                 Match("NOT");
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "NOT");
+                NotOp();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     /* -------------------------------------------  */
+    
     public static void Arith() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTLIT":
-            case "FLOATLIT":
-            case "LPAREN":
-            case "ID":
-            case "CONVERT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTLIT": 
+            case "FLOATLIT": 
+            case "LPAREN": 
+            case "ID": 
+            case "CONVERT": 
                 tree += "[";
                 Term();
                 tree += ",";
@@ -752,13 +978,11 @@ public class Parser {
         }
         tree += "]";
     }
-
     public static void ArithPrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "ADDSUB":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "ADDSUB": 
                 tree += "[";
                 Match("ADDSUB");
                 tree += ",";
@@ -773,28 +997,29 @@ public class Parser {
             case "OR":
             case "NOR":
             case "XOR":
-            case "NOT":
+            //case "NOT":
             case "SCLON":
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: +");
+                //ArithPrime();
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void Term() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTLIT":
-            case "FLOATLIT":
-            case "LPAREN":
-            case "ID":
-            case "CONVERT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTLIT": 
+            case "FLOATLIT": 
+            case "LPAREN": 
+            case "ID": 
+            case "CONVERT": 
                 tree += "[";
                 Factor();
                 tree += ",";
@@ -802,18 +1027,19 @@ public class Parser {
                 tree += "]";
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Arithmetic Expression");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void TermPrime() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "MULDIV":
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "MULDIV": 
                 tree += "[";
                 Match("MULDIV");
                 tree += ",";
@@ -822,7 +1048,7 @@ public class Parser {
                 TermPrime();
                 tree += "]";
                 break;
-            case "ADDSUB":
+            case "ADDSUB": 
             case "RPAREN":
             case "AND":
             case "NAND":
@@ -835,22 +1061,23 @@ public class Parser {
                 //do nothing
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: * or /");
+                //TermPrime();
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void Factor() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTLIT":
-            case "FLOATLIT":
-            case "LPAREN":
-            case "ID":
-            case "CONVERT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTLIT": 
+            case "FLOATLIT": 
+            case "LPAREN": 
+            case "ID": 
+            case "CONVERT": 
                 tree += "[";
                 Expow();
                 tree += ",";
@@ -858,20 +1085,21 @@ public class Parser {
                 tree += "]";
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Arithmetic Expression");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void FactorPrime() {
         nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "EXPON":
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "EXPON": 
                 tree += "[";
-                Match("EXPON");
+        	Match("EXPON");
                 tree += ",";
                 Expow();
                 tree += ",";
@@ -879,7 +1107,7 @@ public class Parser {
                 tree += "]";
                 break;
             case "MULDIV":
-            case "ADDSUB":
+            case "ADDSUB": 
             case "RPAREN":
             case "AND":
             case "NAND":
@@ -892,18 +1120,20 @@ public class Parser {
                 //do nothing
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing tokens in Arithmetic Expression");
+
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void Expow() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "LPAREN":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "LPAREN": 
                 tree += "[";
                 Match("LPAREN");
                 tree += ",";
@@ -912,35 +1142,52 @@ public class Parser {
                 Match("RPAREN");
                 tree += "]";
                 break;
-            case "INTLIT":
-            case "FLOATLIT":
+            case "INTLIT": 
+            case "FLOATLIT": 
                 tree += "[";
                 NumLit();
                 tree += "]";
                 break;
-            case "ID":
+            case "ID": 
                 tree += "[";
                 Match("ID");
                 tree += "]";
                 break;
-            case "CONVERT":
+            case "CONVERT": 
                 tree += "[";
                 Convert();
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "INTLIT": 
+                    case "FLOATLIT": 
+                    case "ID":
+                    case "CONVERT":    
+                        tokens.add(x, "LPAREN");
+                        break;
+                    default:
+                        tokens.add(x, "ID");;
+                        break;
+                }
+                Expow();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void CondIf() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "IF":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "IF": 
                 tree += "[";
                 Match("IF");
                 tree += ",";
@@ -956,57 +1203,95 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "IF");;
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                CondIf();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void CondStmt() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "ELSE":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "ELSE": 
                 tree += "[";
                 CondElse();
                 tree += "]";
                 break;
-            case "ELSEIF":
+            case "ELSEIF": 
                 tree += "[";
                 CondElseIf();
                 tree += "]";
                 break;
-            case "BOOL":
-            case "DECREMENT":
-            case "FOR":
-            case "ID":
-            case "IF":
-            case "INCREMENT":
-            case "INTEGER":
-            case "LCURLY":
-            case "OUTPUT":
-            case "STRING":
-            case "SWITCH":
-            case "WHILE":
+            case "BOOL": 
+            case "DECREMENT": 
+            case "FOR": 
+            case "ID": 
+            case "IF": 
+            case "INCREMENT": 
+            case "INTEGER": 
+            case "LCURLY": 
+            case "OUTPUT": 
+            case "STRING": 
+            case "SWITCH": 
+            case "WHILE": 
+            case "CASE": 
+            case "DEF": 
+            case "STOP": 
+            case "FOLLOW": 
             case "RCURLY":
+            case "$":         
+            /*    
+            case "STOP":  
+            case "FOLLOW": 
+            */
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "$": 
+                        tokens.add(x, "RCURLY");
+                        break;
+                    case "LCURLY": 
+                        tokens.add(x, "ELSEIF");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                CondStmt();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void CondElseIf() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-
-        switch (getBase(tokens.get(x))) {
-            case "ELSEIF":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "ELSEIF": 
                 tree += "[";
                 Match("ELSEIF");
                 tree += ",";
@@ -1022,36 +1307,63 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "ELSEIF");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                CondElseIf();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void CondElse() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "ELSE":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "ELSE": 
                 tree += "[";
-                Match("ELSE");
+            	Match("ELSE");
                 tree += ",";
                 StmntBlk();
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "ELSE");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                CondElse();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void Loop() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "FOR":
                 tree += "[";
                 Match("FOR");
@@ -1062,10 +1374,10 @@ public class Parser {
                 tree += ",";
                 Match("RPAREN");
                 tree += ",";
-                StmntBlk();
+                LoopBlk();
                 tree += "]";
                 break;
-            case "WHILE":
+            case "WHILE": 
                 tree += "[";
                 Match("WHILE");
                 tree += ",";
@@ -1075,25 +1387,29 @@ public class Parser {
                 tree += ",";
                 Match("RPAREN");
                 tree += ",";
-                StmntBlk();
+                LoopBlk();
                 tree += "]";
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing FOR/WHILE token in Loop");
                 Error();
                 break;
         }
         tree += "]";
     }
-
+    
+    
     public static void LoopCond() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTEGER":
-            case "STRING":
-            case "FLOAT":
-            case "BOOL":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTEGER": 
+            case "STRING": 
+            case "FLOAT": 
+            case "BOOL": 
+            case "ID": 
                 tree += "[";
                 Decln();
                 tree += ",";
@@ -1103,44 +1419,75 @@ public class Parser {
                 tree += ",";
                 Match("SCLON");
                 tree += ",";
+                Match("ID");
+                tree += ",";
                 UpDown();
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "ASSIGN": 
+                        tokens.add(x, "ID");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                LoopCond();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void UpDown() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INCREMENT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INCREMENT": 
                 tree += "[";
                 Match("INCREMENT");
                 tree += "]";
                 break;
-            case "DECREMENT":
+            case "DECREMENT": 
                 tree += "[";
                 Match("DECREMENT");
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "SCLON": 
+                        tokens.add(x, "INCREMENT");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                UpDown();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void In() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INPUT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INPUT": 
                 tree += "[";
                 Match("INPUT");
                 tree += ",";
@@ -1152,20 +1499,34 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "INPUT");
+                        break;    
+                    default:
+                        Error();
+                        break;
+                }
+                In();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void InOutCond() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "STRINGLIT":
-            case "IGNORE":
-            case "ID":
+            case "IGNORE": 
+            case "ID": 
             case "CONVERT":
                 tree += "[";
                 ConCat();
@@ -1176,18 +1537,19 @@ public class Parser {
                 //do nothing
                 break;
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing STRINGLIT/ID token inside INPUT/OUTPUT");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void Out() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "OUTPUT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "OUTPUT": 
                 tree += "[";
                 Match("OUTPUT");
                 tree += ",";
@@ -1199,40 +1561,55 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "OUTPUT");;
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Out();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
 
     public static void ConCat() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "STRINGLIT":
-            case "IGNORE":
-            case "ID":
+            case "IGNORE": 
+            case "ID": 
             case "CONVERT":
                 tree += "[";
                 String();
                 tree += ",";
                 ConCatPrime();
                 tree += "]";
-                break;
+                break;    
             default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Recommendation: ");
+                System.out.println("Missing STRINGLIT/ID token inside ConCat statement");
                 Error();
                 break;
         }
         tree += "]";
     }
-
     public static void ConCatPrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "CONCAT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "CONCAT": 
                 tree += "[";
                 Match("CONCAT");
                 tree += ",";
@@ -1246,50 +1623,71 @@ public class Parser {
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "RPAREN":  
+                        tokens.add(x, "CONCAT");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                ConCatPrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void String() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "STRINGLIT":
                 tree += "[";
                 Match("STRINGLIT");
                 tree += "]";
                 break;
-            case "IGNORE":
+            case "IGNORE": 
                 tree += "[";
                 Match("IGNORE");
                 tree += "]";
                 break;
-            case "ID":
+            case "ID": 
                 tree += "[";
                 Match("ID");
                 tree += "]";
                 break;
-            case "CONVERT":
+            case "CONVERT": 
                 tree += "[";
                 Match("CONVERT");
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add("STRINGLIT");
+                String();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void Switch() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "SWITCH":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "SWITCH": 
                 tree += "[";
                 Match("SWITCH");
                 tree += ",";
@@ -1307,18 +1705,32 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "SWITCH");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Switch();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void Cases() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "CASE":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "CASE": 
                 tree += "[";
                 Match("CASE");
                 tree += ",";
@@ -1328,7 +1740,7 @@ public class Parser {
                 tree += ",";
                 Match("RPAREN");
                 tree += ",";
-                Match("COLON");
+                Match("COLON");	
                 tree += ",";
                 Stmnts();
                 tree += ",";
@@ -1337,23 +1749,37 @@ public class Parser {
                 CasesPrime();
                 tree += "]";
                 break;
-            case "RCURLY":
+            case "RCURLY": 
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "CASE");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Cases();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
     public static void CasesPrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "CASE":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "CASE": 
                 tree += "[";
                 Match("CASE");
                 tree += ",";
@@ -1372,11 +1798,11 @@ public class Parser {
                 CasesPrime();
                 tree += "]";
                 break;
-            case "DEF":
+            case "DEF": 
                 tree += "[";
                 Match("DEF");
                 tree += ",";
-                Match("COLON");
+                Match("COLON");	
                 tree += ",";
                 Stmnts();
                 tree += ",";
@@ -1385,46 +1811,79 @@ public class Parser {
                 Match("SCLON");
                 tree += "]";
                 break;
-            case "RCURLY":
+            case "RCURLY": 
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "CASE");
+                        break;
+                    case "COLON": 
+                        tokens.add(x, "DEF");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                CasesPrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void Stop() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "STOP":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "STOP": 
                 tree += "[";
                 Match("STOP");
                 tree += ",";
                 Match("SCLON");
                 tree += "]";
                 break;
-            case "CASE":
-            case "DEF":
+            case "CASE": 
+            case "DEF": 
                 tree += "[[ # []]]";
                 //do nothing
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "SCLON": 
+                        tokens.add(x, "STOP");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Stop();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void Convert() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
             case "CONVERT":
                 tree += "[";
                 Match("CONVERT");
@@ -1435,29 +1894,44 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "LPAREN": 
+                        tokens.add(x, "CONVERT");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                Convert();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
+    
     public static void ConvertPrime() {
-        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName();
-        tree += "[";
-        tree += nameofCurrMethod + " # ";
-        switch (getBase(tokens.get(x))) {
-            case "INTLIT":
-            case "FLOATLIT":
-            case "LPAREN":
-            case "ID":
-            case "CONVERT":
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "INTLIT": 
+            case "FLOATLIT": 
+            case "LPAREN": 
+            case "ID": 
+            case "CONVERT": 
                 tree += "[";
                 Arith();
                 tree += ",";
                 Match("RPAREN");
                 tree += "]";
                 break;
-            case "STRINGLIT":
+            case "STRINGLIT": 
                 tree += "[";
                 Match("STRINGLIT");
                 tree += ",";
@@ -1465,44 +1939,166 @@ public class Parser {
                 tree += "]";
                 break;
             default:
-                Error();
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "RPAREN": 
+                        tokens.add(x, "STRINGLIT");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                ConvertPrime();
+                //Error();
                 break;
         }
-        tree += "]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
 
-    public static void Match(String token) {
-        if (token.equals("$")) {
-            System.out.println("Done!");
-            System.out.println(tree);
-            System.exit(0);
+    public static void LoopBlk() {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "LCURLY": 
+                tree += "[";
+                Match("LCURLY");
+                tree += ",";
+                LoopStmnts();
+                tree += ",";
+                Match("RCURLY");
+                tree += "]";
+                break;
+            default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                tokens.add(x, "LCURLY");
+                LoopBlk();
+                //Error();
+                break;
         }
-        System.out.println(nameofCurrMethod + ": " + token);
-        x++;
-        tree += "[" + token + " # []]";
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
     }
-
-    public static void Error() {
+    
+    public static void LoopStmnts() {
+        nameofCurrMethod = new Throwable().getStackTrace()[0].getMethodName(); 
+        tree += "[" + nameofCurrMethod + " # ";
+        switch(getBase(tokens.get(x))){
+            case "STOP": 
+                tree += "[";
+                Match("STOP");
+                tree += ",";
+                Match("SCLON");
+                tree += ",";
+                LoopStmnts();
+                tree += "]";
+                break;
+            case "FOLLOW": 
+                tree += "[";
+                Match("FOLLOW");
+                tree += ",";
+                Match("SCLON");
+                tree += ",";
+                LoopStmnts();
+                tree += "]";
+                break;
+            case "INTEGER": 
+            case "STRING": 
+            case "FLOAT": 
+            case "BOOL":
+            case "ID":
+            case "IF":
+            case "FOR": 
+            case "WHILE":
+            case "LCURLY": 
+            case "SWITCH": 
+            case "OUTPUT": 
+                tree += "[";
+                Stmnt();
+                tree += ",";
+                LoopStmnts();
+                tree += "]";
+                break;
+            case "RCURLY": 
+                tree += "[[ # []]]";
+                //do nothing
+                break;
+            default:
+                System.out.println("CFG Mismatch");
+                System.out.println("Attempting to fix");
+                tree = tree.substring(0, tree.length() - nameofCurrMethod.length() - 4);
+                alter++;
+                switch(getBase(tokens.get(x+1))){ 
+                    case "SCLON": 
+                        tokens.add(x, "STOP");
+                        break;
+                    default:
+                        Error();
+                        break;
+                }
+                LoopStmnts();
+                //Error();
+                break;
+        }
+        if (alter == 0)
+            tree += "]";
+        else
+            alter--;
+    }
+    
+    public static void Match(String token){
+        if (getBase(tokens.get(x)).equals(token) || token.equals("$"))
+        {
+            System.out.println(nameofCurrMethod);
+            System.out.println("To match: " + token + ", token: " + getBase(tokens.get(x)));
+            System.out.println();
+            x++;
+            tree += "["+ token + " # []]";
+        }
+        else
+        {  
+            System.out.println("Method Match Error");
+            System.out.println("Required match: " + token + ", current token: " + getBase(tokens.get(x)));
+            System.out.println("Fixing");
+            tokens.add(x,token);
+            System.out.println("Added: " + token);
+            System.out.println();
+            x++;
+            tree += "["+ token + " # []]";
+            //Error();
+        }
+        
+    }
+    public static void Error(){
+        System.out.println("Cannot fix CFG Mismatch");
         System.out.println("Error at index " + x);
         System.out.println("token: " + getBase(tokens.get(x)));
-        System.out.println("source function: " + nameofCurrMethod);
+        System.out.println("Source function: " + nameofCurrMethod);
         System.exit(0);
     }
-
-    public static String getBase(String token) {
+    public static String getBase(String token){
         String baseWord = "";
-        for (int i = 0; i < token.length(); i++) {
-            if (token.charAt(i) == ' ') {
+        for (int i = 0; i < token.length(); i++)
+        {
+            if (token.charAt(i) == ' ')
                 break;
-            }
             baseWord += (token.charAt(i));
         }
         return baseWord;
     }
-
-    public static void writeFile(String input) {
+    public static void writeFile(String input){
         try {
-            File output = new File("treetest.txt");
+            File output = new File("src\\Cocoa Test Files\\generatedTree.txt");
             if (output.createNewFile()) {
                 System.out.println("File created: " + output.getName());
             } else {
@@ -1512,8 +2108,8 @@ public class Parser {
             System.out.println("An error occurred.");
         }
         try {
-            FileWriter myWriter = new FileWriter("treetest.txt");
-            myWriter.write(input);
+            FileWriter myWriter = new FileWriter("src\\Cocoa Test Files\\generatedTree.txt");
+	    myWriter.write(input);
             myWriter.close();
             System.out.println("Successfully wrote to the file.");
         } catch (IOException e) {

@@ -1,14 +1,15 @@
 MAIN{
 
-	INT load;
+    INT load;
 OUTPUT("Loading. . .");
-	FOR ( load = 0; load <= 100; load++)
-	{
-		IF (load != 50){
-			follow;
-		}
-		OUTPUT("Currently at 50 %!");
-	}
-	OUTPUT("Loading complete");
+    FOR ( load = 0; load <= 100; load++)
+    {
+        IF (load == 50){
+            OUTPUT("Currently at 50 %!");
+        }
+        FOLLOW;
+        OUTPUT("This shouldn't show up.");
+    }
+    OUTPUT("Loading complete");
 
 } END

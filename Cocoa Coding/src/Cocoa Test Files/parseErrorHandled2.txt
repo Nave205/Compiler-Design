@@ -1,0 +1,13 @@
+MAIN{
+
+    INT num = 420;
+    STR word = "360";
+    FLOAT remainder;
+    
+    x = STR2FLT(word);
+        remainder = num % x;
+    OUTPUT(remainder)                  // 60 //
+        IF(y <= 3)
+        {
+            OUTPUT("YELOW");
+} END

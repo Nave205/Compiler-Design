@@ -1,0 +1,10 @@
+MAIN{
+
+    INT x = 5;
+
+    FOR(x ; x = 0 ; x--)                // RELOP error //
+    {
+        OUTPUT('Hello.');
+    }
+
+}END
